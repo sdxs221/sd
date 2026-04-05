@@ -1,0 +1,167 @@
+--汉化就不加密了但可以二改除司空，司空二改死妈。
+local Translations = {
+   ["Ketamine | v1.3"] = "真无悔汉化ketamine",
+    ["Saves"] = "保存设置",
+    ["Auto load settings"] = "自动加载设置",
+    ["UI Settings"] = "界面设置",
+    ["Transparent"] = "透明效果",
+    ["Rounded corners"] = "圆角",
+    ["Dynamic side panel"] = "动态侧边栏",
+    ["Window scale"] = "窗口缩放",
+    ["UI Shadow Settings"] = "界面阴影设置",
+    ["Has shadow"] = "启用阴影",
+    ["Shadow centered"] = "居中阴影",
+    ["Log calls called only by game scripts"] = "仅记录游戏脚本调用",
+    ["Create arguments as variable"] = "将参数创建为变量",
+    ["Create event as variable"] = "将事件创建为变量",
+    ["Maximum log amount [ 50 ]"] = "最大日志数量 [ 50 ]",
+    ["Decompile limit [ 1 / 50 scripts at the same time ]"] = "反编译限制 [ 同时最多1/50个脚本 ]",
+    ["Ignore spammy logs"] = "忽略刷屏日志",
+    ["Block remote [Name]"] = "拦截远程[名称]",
+    ["Block remote [Object]"] = "拦截远程[对象]",
+    ["Clear logs"] = "清空日志",
+    ["Copy args to clipboard"] = "复制参数到剪贴板",
+    ["Copy caller to clipboard"] = "复制调用者到剪贴板",
+    ["Copy code to clipboard"] = "复制代码到剪贴板",
+    ["Copy path to clipboard"] = "复制路径到剪贴板",
+    ["Copy result to clipboard"] = "复制结果到剪贴板",
+    ["Decompile"] = "反编译",
+    ["Hook args [Name]"] = "Hook参数[名称]",
+    ["Hook args [Object]"] = "Hook参数[对象]",
+    ["Ignore remote [Name]"] = "忽略远程[名称]",
+    ["Ignore remote [Object]"] = "忽略远程[对象]",
+    ["Run code"] = "运行代码",
+    ["return nil = unhook"] = "返回nil=取消Hook",
+    ["Copy text to clipboard"] = "复制文本到剪贴板",
+    ["Copy url to clipboard"] = "复制链接到剪贴板",
+    ["Generate code"] = "生成代码",
+    ["Get body as lua table"] = "获取请求体为Lua表",
+    ["Get request body"] = "获取请求体",
+    ["Get request headers"] = "获取请求头",
+    ["Get request result"] = "获取请求结果",
+    ["Start Scanning"] = "开始扫描",
+    ["Home"] = "主页",
+    ["Spy"] = "监控",
+    ["Remotes"] = "远程事件",
+    ["Events"] = "本地事件",
+    ["HTTP reqs"] = "网络请求",
+    ["Scanners"] = "扫描器",
+    ["Script scan"] = "脚本扫描",
+    ["CHANGELOGS"] = "更新日志",
+    ["1.3 - Added changelogs, fixed http spy error (not fatal) on bad executors, added memory scanner. Now unavailable pages such as memory scanner not visible on unsupported executors."] = "1.3 - 新增更新日志，修复了部分执行器上HTTP监控的非致命错误，新增内存扫描器。现在不支持的执行器将隐藏内存扫描器等不可用页面。",
+    ["1.2 - Fixed lags who been caused by Script scanner & improved it's speed, added ability to hook arguments in remote & event spies."] = "1.2 - 修复了脚本扫描器导致的卡顿并提升了速度，新增在远程/事件监控中Hook参数的功能。",
+    ["1.1 - CSpy been renamed to Ketamine, added Script scanner & http spy."] = "1.1 - CSpy更名为Ketamine，新增脚本扫描器与HTTP监控。",
+    ["1.0 - Ketamine was released as CSpy (Cherry's Spy), having simple settings, remote & event spy."] = "1.0 - Ketamine以CSpy（Cherry's Spy）名称发布，包含基础设置、远程与事件监控。"
+}
+
+local function translateText(text)
+    if not text or type(text) ~= "string" then return text end
+    
+    if Translations[text] then
+        return Translations[text]
+    end
+    
+    for en, cn in pairs(Translations) do
+        if text:find(en) then
+            return text:gsub(en, cn)
+        end
+    end
+    
+    return text
+end
+
+local function setupTranslationEngine()
+    local success, err = pcall(function()
+        local oldIndex = getrawmetatable(game).__newindex
+        setreadonly(getrawmetatable(game), false)
+        
+        getrawmetatable(game).__newindex = newcclosure(function(t, k, v)
+            if (t:IsA("TextLabel") or t:IsA("TextButton") or t:IsA("TextBox")) and k == "Text" then
+                v = translateText(tostring(v))
+            end
+            return oldIndex(t, k, v)
+        end)
+        
+        setreadonly(getrawmetatable(game), true)
+    end)
+    
+    if not success then
+        warn("元表劫持失败:", err)
+       
+        local translated = {}
+        local function scanAndTranslate()
+            for _, gui in ipairs(game:GetService("CoreGui"):GetDescendants()) do
+                if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                    pcall(function()
+                        local text = gui.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                gui.Text = translatedText
+                                translated[gui] = true
+                            end
+                        end
+                    end)
+                end
+            end
+            
+            local player = game:GetService("Players").LocalPlayer
+            if player and player:FindFirstChild("PlayerGui") then
+                for _, gui in ipairs(player.PlayerGui:GetDescendants()) do
+                    if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) and not translated[gui] then
+                        pcall(function()
+                            local text = gui.Text
+                            if text and text ~= "" then
+                                local translatedText = translateText(text)
+                                if translatedText ~= text then
+                                    gui.Text = translatedText
+                                    translated[gui] = true
+                                end
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+        
+        local function setupDescendantListener(parent)
+            parent.DescendantAdded:Connect(function(descendant)
+                if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+                    task.wait(0.1)
+                    pcall(function()
+                        local text = descendant.Text
+                        if text and text ~= "" then
+                            local translatedText = translateText(text)
+                            if translatedText ~= text then
+                                descendant.Text = translatedText
+                            end
+                        end
+                    end)
+                end
+            end)
+        end
+        
+        pcall(setupDescendantListener, game:GetService("CoreGui"))
+        local player = game:GetService("Players").LocalPlayer
+        if player and player:FindFirstChild("PlayerGui") then
+            pcall(setupDescendantListener, player.PlayerGui)
+        end
+        
+        while true do
+            scanAndTranslate()
+            task.wait(3)
+        end
+    end
+end
+
+task.wait(2)
+
+setupTranslationEngine()
+
+local success, err = pcall(function()
+loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Ketamine-46055"))()
+end)
+
+if not success then
+    warn("加载失败:", err)
+end
