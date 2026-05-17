@@ -464,6 +464,34 @@ function Library:CreateTab(tabName: string)
         end)
     end
 
+    function pageMethods:AddButton(text: string, callback: () -> ())
+        local card = Instance.new("Frame")
+        card.Name = "FunctionalCard"
+        card.Size = UDim2.new(1, 0, 0, 42)
+        card.BackgroundColor3 = Color3.fromHex("#F5F7FA")
+        card.Parent = scroll
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0.5, 0)
+        local stroke = Instance.new("UIStroke", card)
+        stroke.Color = Color3.fromHex("#E4E8ED")
+
+        local clickBtn = Instance.new("TextButton", card)
+        clickBtn.Text = text
+        clickBtn.Size = UDim2.new(1, -28, 0, 28)
+        clickBtn.Position = UDim2.fromScale(0.5, 0.5)
+        clickBtn.AnchorPoint = Vector2.new(0.5, 0.5)
+        clickBtn.BackgroundColor3 = Color3.fromHex("#5C6BC0")
+        clickBtn.TextColor3 = Color3.new(1, 1, 1)
+        clickBtn.TextSize = 13
+        clickBtn.Font = Enum.Font.SourceSansBold
+        Instance.new("UICorner", clickBtn).CornerRadius = UDim.new(0.5, 0)
+
+        clickBtn.Activated:Connect(function()
+            clickBtn.Size = UDim2.new(1, -36, 0, 24)
+            TweenService:Create(clickBtn, TWEEN_INFO_FAST, {Size = UDim2.new(1, -28, 0, 28)}):Play()
+            callback()
+        end)
+    end
+
     return pageMethods
 end
 
