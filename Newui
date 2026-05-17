@@ -39,7 +39,7 @@ function Library.CreateWindow(titleText: string)
     local self = setmetatable({}, Library)
     
     self.ScreenGui = Instance.new("ScreenGui")
-    self.ScreenGui.Name = "SL_UltimateLibrary"
+    self.ScreenGui.Name = "UltimateFloatMenu"
     self.ScreenGui.ResetOnSpawn = false
     
     self.IsMenuOpen = false
@@ -56,7 +56,7 @@ function Library.CreateWindow(titleText: string)
     MakeDraggable(self.FloatBall)
 
     self.MainPanel = Instance.new("Frame", self.ScreenGui)
-    self.MainPanel.Size = UDim2.fromOffset(360, 250)
+    self.MainPanel.Size = UDim2.fromOffset(380, 260)
     self.MainPanel.Position = UDim2.fromScale(0.5, 0.5)
     self.MainPanel.AnchorPoint = Vector2.new(0.5, 0.5)
     self.MainPanel.BackgroundColor3 = Color3.new(1, 1, 1)
@@ -69,35 +69,31 @@ function Library.CreateWindow(titleText: string)
 
     local TitleLabel = Instance.new("TextLabel", self.MainPanel)
     TitleLabel.Text = titleText
-    TitleLabel.Size = UDim2.fromOffset(120, 35)
+    TitleLabel.Size = UDim2.fromOffset(150, 35)
     TitleLabel.Position = UDim2.fromOffset(16, 5)
     TitleLabel.TextColor3 = Color3.fromHex("#2C3E50")
-    TitleLabel.TextSize = 20
+    TitleLabel.TextSize = 18
     TitleLabel.Font = Enum.Font.SourceSansBold
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     TitleLabel.BackgroundTransparency = 1
 
     self.LeftTabScroll = Instance.new("ScrollingFrame", self.MainPanel)
-    self.LeftTabScroll.Size = UDim2.new(0, 85, 1, -55)
+    self.LeftTabScroll.Size = UDim2.new(0, 95, 1, -55)
     self.LeftTabScroll.Position = UDim2.fromOffset(12, 45)
     self.LeftTabScroll.BackgroundTransparency = 1
-    self.LeftTabScroll.ScrollBarThickness = 2
-    self.LeftTabScroll.ScrollBarImageColor3 = Color3.fromHex("#D0D5DD")
+    self.LeftTabScroll.ScrollBarThickness = 0
     self.LeftTabScroll.ScrollingDirection = Enum.ScrollingDirection.Y
     self.LeftTabScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+    self.LeftTabScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
     local TabListLayout = Instance.new("UIListLayout", self.LeftTabScroll)
     TabListLayout.FillDirection = Enum.FillDirection.Vertical
     TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     TabListLayout.Padding = UDim.new(0, 8)
-    
-    TabListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        self.LeftTabScroll.CanvasSize = UDim2.fromOffset(0, TabListLayout.AbsoluteContentSize.Y + 10)
-    end)
 
     self.ContentFrame = Instance.new("Frame", self.MainPanel)
-    self.ContentFrame.Size = UDim2.new(1, -115, 1, -55)
-    self.ContentFrame.Position = UDim2.fromOffset(105, 45)
+    self.ContentFrame.Size = UDim2.new(1, -130, 1, -55)
+    self.ContentFrame.Position = UDim2.fromOffset(120, 45)
     self.ContentFrame.BackgroundTransparency = 1
     self.ContentFrame.ClipsDescendants = true
 
@@ -108,7 +104,7 @@ function Library.CreateWindow(titleText: string)
             self.MainPanel.Size = UDim2.fromOffset(0, 0)
             self.MainPanel.Visible = true
             self.FloatBall.Visible = false
-            TweenService:Create(self.MainPanel, TWEEN_INFO_BOUNCE, {Size = UDim2.fromOffset(360, 250), Position = UDim2.fromScale(0.5, 0.5)}):Play()
+            TweenService:Create(self.MainPanel, TWEEN_INFO_BOUNCE, {Size = UDim2.fromOffset(380, 260), Position = UDim2.fromScale(0.5, 0.5)}):Play()
         else
             local shrink = TweenService:Create(self.MainPanel, TWEEN_INFO_FAST, {Size = UDim2.fromOffset(0, 0), Position = self.FloatBall.Position})
             shrink:Play()
@@ -150,6 +146,7 @@ function Library:CreateTab(tabName: string)
     scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
     scroll.Visible = (tabIndex == 1)
     scroll.Parent = self.ContentFrame
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
     local listLayout = Instance.new("UIListLayout")
     listLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -158,19 +155,15 @@ function Library:CreateTab(tabName: string)
 
     local padding = Instance.new("UIPadding")
     padding.PaddingTop = UDim.new(0, 5)
-    padding.PaddingBottom = UDim.new(0, 20)
-    padding.PaddingLeft = UDim.new(0, 6)
-    padding.PaddingRight = UDim.new(0, 6)
+    padding.PaddingBottom = UDim.new(0, 10)
+    padding.PaddingLeft = UDim.new(0, 4)
+    padding.PaddingRight = UDim.new(0, 4)
     padding.Parent = scroll
-
-    listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        scroll.CanvasSize = UDim2.fromOffset(0, listLayout.AbsoluteContentSize.Y + 30)
-    end)
 
     local tabCard = Instance.new("Frame", self.LeftTabScroll)
     tabCard.Size = UDim2.new(1, -5, 0, 32)
     tabCard.BackgroundColor3 = (tabIndex == 1) and Color3.fromHex("#5C6BC0") or Color3.fromHex("#E8EBF2")
-    Instance.new("UICorner", tabCard).CornerRadius = UDim.new(0.5, 0)
+    Instance.new("UICorner", tabCard).CornerRadius = UDim.new(0, 8)
 
     local btn = Instance.new("TextButton", tabCard)
     btn.Text = tabName
@@ -182,13 +175,11 @@ function Library:CreateTab(tabName: string)
 
     local function SwitchToTab()
         if self.CurrentTab == tabIndex then return end
-        
         local oldPage = self.Pages[self.CurrentTab]
         if oldPage then oldPage.Visible = false end
         
         self.CurrentTab = tabIndex
-        
-        scroll.Position = UDim2.fromScale(0.1, 0)
+        scroll.Position = UDim2.fromScale(0.05, 0)
         scroll.Visible = true
         TweenService:Create(scroll, TWEEN_INFO_PAGE, {Position = UDim2.fromScale(0, 0)}):Play()
 
@@ -205,7 +196,6 @@ function Library:CreateTab(tabName: string)
     end
 
     btn.Activated:Connect(SwitchToTab)
-
     table.insert(self.Tabs, tabCard)
     table.insert(self.Pages, scroll)
 
@@ -213,34 +203,31 @@ function Library:CreateTab(tabName: string)
 
     function pageMethods:AddSwitch(text: string, callback: (boolean) -> ())
         local isOn = false
-        local card = Instance.new("Frame")
-        card.Name = "FunctionalCard"
-        card.Size = UDim2.new(1, 0, 0, 42) 
+        local card = Instance.new("Frame", scroll)
+        card.Size = UDim2.new(1, 0, 0, 40) 
         card.BackgroundColor3 = Color3.fromHex("#F5F7FA")
-        card.Parent = scroll
-        Instance.new("UICorner", card).CornerRadius = UDim.new(0.5, 0) 
-        local stroke = Instance.new("UIStroke", card)
-        stroke.Color = Color3.fromHex("#E4E8ED")
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        Instance.new("UIStroke", card).Color = Color3.fromHex("#E4E8ED")
         
         local lbl = Instance.new("TextLabel", card)
         lbl.Text = text
         lbl.Size = UDim2.new(0.6, 0, 1, 0)
-        lbl.Position = UDim2.fromOffset(18, 0)
+        lbl.Position = UDim2.fromOffset(14, 0)
         lbl.TextColor3 = Color3.fromHex("#333333")
-        lbl.TextSize = 13
+        lbl.TextSize = 12
         lbl.Font = Enum.Font.SourceSansBold
         lbl.TextXAlignment = Enum.TextXAlignment.Left
         lbl.BackgroundTransparency = 1
 
         local switchBtn = Instance.new("ImageButton", card)
-        switchBtn.Size = UDim2.fromOffset(40, 22)
+        switchBtn.Size = UDim2.fromOffset(36, 20)
         switchBtn.AnchorPoint = Vector2.new(1, 0.5)
-        switchBtn.Position = UDim2.new(1, -14, 0.5, 0)
+        switchBtn.Position = UDim2.new(1, -12, 0.5, 0)
         switchBtn.BackgroundColor3 = Color3.fromHex("#D0D5DD")
         Instance.new("UICorner", switchBtn).CornerRadius = UDim.new(0.5, 0)
 
         local dot = Instance.new("Frame", switchBtn)
-        dot.Size = UDim2.fromOffset(16, 16)
+        dot.Size = UDim2.fromOffset(14, 14)
         dot.Position = UDim2.new(0, 3, 0.5, 0)
         dot.AnchorPoint = Vector2.new(0, 0.5)
         dot.BackgroundColor3 = Color3.new(1, 1, 1)
@@ -250,38 +237,35 @@ function Library:CreateTab(tabName: string)
             isOn = not isOn
             callback(isOn)
             TweenService:Create(switchBtn, TWEEN_INFO_FAST, {BackgroundColor3 = isOn and Color3.fromHex("#5C6BC0") or Color3.fromHex("#D0D5DD")}):Play()
-            TweenService:Create(dot, TWEEN_INFO_FAST, {Position = isOn and UDim2.new(1, -19, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)}):Play()
+            TweenService:Create(dot, TWEEN_INFO_FAST, {Position = isOn and UDim2.new(1, -17, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)}):Play()
         end)
     end
 
     function pageMethods:AddInput(title: string, placeholder: string, callback: (string) -> ())
-        local card = Instance.new("Frame")
-        card.Name = "FunctionalCard"
-        card.Size = UDim2.new(1, 0, 0, 42)
+        local card = Instance.new("Frame", scroll)
+        card.Size = UDim2.new(1, 0, 0, 40)
         card.BackgroundColor3 = Color3.fromHex("#F5F7FA")
-        card.Parent = scroll
-        Instance.new("UICorner", card).CornerRadius = UDim.new(0.5, 0) 
-        local stroke = Instance.new("UIStroke", card)
-        stroke.Color = Color3.fromHex("#E4E8ED")
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        Instance.new("UIStroke", card).Color = Color3.fromHex("#E4E8ED")
 
         local lbl = Instance.new("TextLabel", card)
         lbl.Text = title
         lbl.Size = UDim2.new(0.4, 0, 1, 0)
-        lbl.Position = UDim2.fromOffset(18, 0)
+        lbl.Position = UDim2.fromOffset(14, 0)
         lbl.TextColor3 = Color3.fromHex("#333333")
-        lbl.TextSize = 13
+        lbl.TextSize = 12
         lbl.Font = Enum.Font.SourceSansBold
         lbl.TextXAlignment = Enum.TextXAlignment.Left
         lbl.BackgroundTransparency = 1
 
         local box = Instance.new("TextBox", card)
-        box.Size = UDim2.new(0.5, 0, 0, 26)
+        box.Size = UDim2.new(0.5, 0, 0, 24)
         box.AnchorPoint = Vector2.new(1, 0.5)
-        box.Position = UDim2.new(1, -14, 0.5, 0)
+        box.Position = UDim2.new(1, -12, 0.5, 0)
         box.BackgroundColor3 = Color3.fromHex("#E9EDF2")
         box.PlaceholderText = placeholder
         box.TextColor3 = Color3.fromHex("#2C3E50")
-        box.TextSize = 12
+        box.TextSize = 11
         box.Text = ""
         box.Font = Enum.Font.SourceSansBold
         Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
@@ -289,21 +273,18 @@ function Library:CreateTab(tabName: string)
     end
 
     function pageMethods:AddSlider(title: string, minV: number, maxV: number, defV: number, callback: (number) -> ())
-        local card = Instance.new("Frame")
-        card.Name = "FunctionalCard"
-        card.Size = UDim2.new(1, 0, 0, 42)
+        local card = Instance.new("Frame", scroll)
+        card.Size = UDim2.new(1, 0, 0, 40)
         card.BackgroundColor3 = Color3.fromHex("#F5F7FA")
-        card.Parent = scroll
-        Instance.new("UICorner", card).CornerRadius = UDim.new(0.5, 0) 
-        local stroke = Instance.new("UIStroke", card)
-        stroke.Color = Color3.fromHex("#E4E8ED")
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        Instance.new("UIStroke", card).Color = Color3.fromHex("#E4E8ED")
 
         local info = Instance.new("TextLabel", card)
         info.Text = title .. ": " .. defV
         info.Size = UDim2.new(0.5, 0, 1, 0)
-        info.Position = UDim2.fromOffset(18, 0)
+        info.Position = UDim2.fromOffset(14, 0)
         info.TextColor3 = Color3.fromHex("#333333")
-        info.TextSize = 13
+        info.TextSize = 12
         info.Font = Enum.Font.SourceSansBold
         info.TextXAlignment = Enum.TextXAlignment.Left
         info.BackgroundTransparency = 1
@@ -312,12 +293,12 @@ function Library:CreateTab(tabName: string)
         track.Text = ""
         track.Size = UDim2.new(0.4, 0, 0, 6)
         track.AnchorPoint = Vector2.new(1, 0.5)
-        track.Position = UDim2.new(1, -20, 0.5, 0)
+        track.Position = UDim2.new(1, -16, 0.5, 0)
         track.BackgroundColor3 = Color3.fromHex("#E1E5EA")
         Instance.new("UICorner", track).CornerRadius = UDim.new(0.5, 0)
 
         local sliderBtn = Instance.new("Frame", track)
-        sliderBtn.Size = UDim2.fromOffset(14, 14)
+        sliderBtn.Size = UDim2.fromOffset(12, 12)
         sliderBtn.AnchorPoint = Vector2.new(0.5, 0.5)
         sliderBtn.Position = UDim2.fromScale((defV - minV)/(maxV - minV), 0.5)
         sliderBtn.BackgroundColor3 = Color3.new(1, 1, 1)
@@ -342,152 +323,121 @@ function Library:CreateTab(tabName: string)
         local isOpened = false
         local currentSelectedText = (defaultIndex and defaultIndex > 0) and options[defaultIndex] or nil
 
-        local card = Instance.new("Frame")
-        card.Name = "FunctionalCard"
-        card.Size = UDim2.new(1, 0, 0, 42)
+        local card = Instance.new("Frame", scroll)
+        card.Size = UDim2.new(1, 0, 0, 40)
         card.BackgroundColor3 = Color3.fromHex("#F5F7FA")
         card.ClipsDescendants = true
         card.ZIndex = 10
-        card.Parent = scroll
 
-        local cardCorner = Instance.new("UICorner")
-        cardCorner.CornerRadius = UDim.new(0, 21) 
-        cardCorner.Parent = card
-        
-        local cardStroke = Instance.new("UIStroke")
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        local cardStroke = Instance.new("UIStroke", card)
         cardStroke.Color = Color3.fromHex("#E4E8ED")
-        cardStroke.Thickness = 1
-        cardStroke.Parent = card
 
-        local nameLabel = Instance.new("TextLabel")
+        local nameLabel = Instance.new("TextLabel", card)
         nameLabel.Text = title
-        nameLabel.Size = UDim2.new(0.4, 0, 0, 42)
-        nameLabel.Position = UDim2.fromOffset(18, 0)
+        nameLabel.Size = UDim2.new(0.4, 0, 0, 40)
+        nameLabel.Position = UDim2.fromOffset(14, 0)
         nameLabel.TextColor3 = Color3.fromHex("#333333")
-        nameLabel.TextSize = 13
+        nameLabel.TextSize = 12
         nameLabel.Font = Enum.Font.SourceSansBold
         nameLabel.TextXAlignment = Enum.TextXAlignment.Left
         nameLabel.BackgroundTransparency = 1
         nameLabel.ZIndex = 11
-        nameLabel.Parent = card
 
-        local boxBtn = Instance.new("TextButton")
+        local boxBtn = Instance.new("TextButton", card)
         boxBtn.Text = currentSelectedText or "请选择..."
-        boxBtn.Size = UDim2.new(0.45, 0, 0, 26)
+        boxBtn.Size = UDim2.new(0.45, 0, 0, 24)
         boxBtn.AnchorPoint = Vector2.new(1, 0)
-        boxBtn.Position = UDim2.new(1, -14, 0, 8)
+        boxBtn.Position = UDim2.new(1, -12, 0, 8)
         boxBtn.BackgroundColor3 = Color3.fromHex("#E9EDF2")
         boxBtn.TextColor3 = currentSelectedText and Color3.fromHex("#5C6BC0") or Color3.fromHex("#7A8B9E")
-        boxBtn.TextSize = 12
+        boxBtn.TextSize = 11
         boxBtn.Font = Enum.Font.SourceSansBold
         boxBtn.ZIndex = 11
-        boxBtn.Parent = card
         Instance.new("UICorner", boxBtn).CornerRadius = UDim.new(0, 6)
 
         local arrow = Instance.new("TextLabel", boxBtn)
         arrow.Text = "▼"
         arrow.Size = UDim2.fromScale(0, 1)
-        arrow.Position = UDim2.new(1, -18, 0, 0)
+        arrow.Position = UDim2.new(1, -14, 0, 0)
         arrow.TextColor3 = Color3.fromHex("#7A8B9E")
-        arrow.TextSize = 10
+        arrow.TextSize = 9
         arrow.BackgroundTransparency = 1
         arrow.ZIndex = 12
 
-        local listScroll = Instance.new("ScrollingFrame")
-        listScroll.Size = UDim2.new(1, -32, 0, 80)
-        listScroll.Position = UDim2.fromOffset(16, 45)
+        local listScroll = Instance.new("ScrollingFrame", card)
+        listScroll.Size = UDim2.new(1, -24, 0, 80)
+        listScroll.Position = UDim2.fromOffset(12, 42)
         listScroll.BackgroundTransparency = 1
-        listScroll.CanvasSize = UDim2.fromOffset(0, #options * 26)
+        listScroll.CanvasSize = UDim2.fromOffset(0, #options * 24)
         listScroll.ScrollBarThickness = 2
         listScroll.ScrollBarImageColor3 = Color3.fromHex("#D0D5DD")
         listScroll.Visible = false
         listScroll.ZIndex = 12
-        listScroll.Parent = card
 
-        local internalLayout = Instance.new("UIListLayout")
+        local internalLayout = Instance.new("UIListLayout", listScroll)
         internalLayout.SortOrder = Enum.SortOrder.LayoutOrder
         internalLayout.Padding = UDim.new(0, 2)
-        internalLayout.Parent = listScroll
-
-        local buttonsTable = {}
-        local function RefreshHighlights()
-            for optionName, optBtn in pairs(buttonsTable) do
-                if currentSelectedText and optionName == currentSelectedText then
-                    optBtn.TextColor3 = Color3.fromHex("#5C6BC0")
-                else
-                    optBtn.TextColor3 = Color3.fromHex("#555555")
-                end
-            end
-        end
 
         for i, optionName in ipairs(options) do
-            local optBtn = Instance.new("TextButton")
+            local optBtn = Instance.new("TextButton", listScroll)
             optBtn.Text = "   " .. optionName
-            optBtn.Size = UDim2.new(1, 0, 0, 24)
+            optBtn.Size = UDim2.new(1, 0, 0, 22)
             optBtn.BackgroundTransparency = 1
-            optBtn.TextSize = 12
+            optBtn.TextColor3 = Color3.fromHex("#555555")
+            optBtn.TextSize = 11
             optBtn.Font = Enum.Font.SourceSansBold
             optBtn.TextXAlignment = Enum.TextXAlignment.Left
             optBtn.LayoutOrder = i
             optBtn.ZIndex = 13
-            optBtn.Parent = listScroll
-
-            buttonsTable[optionName] = optBtn
 
             optBtn.Activated:Connect(function()
                 currentSelectedText = optionName
                 boxBtn.Text = optionName
                 boxBtn.TextColor3 = Color3.fromHex("#5C6BC0")
                 callback(optionName)
-
                 isOpened = false
                 arrow.Text = "▼"
                 listScroll.Visible = false
-                TweenService:Create(card, TWEEN_INFO_FAST, {Size = UDim2.new(1, 0, 0, 42)}):Play()
+                TweenService:Create(card, TWEEN_INFO_FAST, {Size = UDim2.new(1, 0, 0, 40)}):Play()
             end)
         end
-
-        RefreshHighlights()
 
         boxBtn.Activated:Connect(function()
             isOpened = not isOpened
             if isOpened then
-                RefreshHighlights()
                 arrow.Text = "▲"
                 listScroll.Visible = true
-                TweenService:Create(card, TWEEN_INFO_FAST, {Size = UDim2.new(1, 0, 0, 140)}):Play()
+                TweenService:Create(card, TWEEN_INFO_FAST, {Size = UDim2.new(1, 0, 0, 130)}):Play()
             else
                 arrow.Text = "▼"
                 listScroll.Visible = false
-                TweenService:Create(card, TWEEN_INFO_FAST, {Size = UDim2.new(1, 0, 0, 42)}):Play()
+                TweenService:Create(card, TWEEN_INFO_FAST, {Size = UDim2.new(1, 0, 0, 40)}):Play()
             end
         end)
     end
 
     function pageMethods:AddButton(text: string, callback: () -> ())
-        local card = Instance.new("Frame")
-        card.Name = "FunctionalCard"
-        card.Size = UDim2.new(1, 0, 0, 42)
+        local card = Instance.new("Frame", scroll)
+        card.Size = UDim2.new(1, 0, 0, 40)
         card.BackgroundColor3 = Color3.fromHex("#F5F7FA")
-        card.Parent = scroll
-        Instance.new("UICorner", card).CornerRadius = UDim.new(0.5, 0)
-        local stroke = Instance.new("UIStroke", card)
-        stroke.Color = Color3.fromHex("#E4E8ED")
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        Instance.new("UIStroke", card).Color = Color3.fromHex("#E4E8ED")
 
         local clickBtn = Instance.new("TextButton", card)
         clickBtn.Text = text
-        clickBtn.Size = UDim2.new(1, -28, 0, 28)
+        clickBtn.Size = UDim2.new(1, -24, 0, 26)
         clickBtn.Position = UDim2.fromScale(0.5, 0.5)
         clickBtn.AnchorPoint = Vector2.new(0.5, 0.5)
         clickBtn.BackgroundColor3 = Color3.fromHex("#5C6BC0")
         clickBtn.TextColor3 = Color3.new(1, 1, 1)
-        clickBtn.TextSize = 13
+        clickBtn.TextSize = 12
         clickBtn.Font = Enum.Font.SourceSansBold
-        Instance.new("UICorner", clickBtn).CornerRadius = UDim.new(0.5, 0)
+        Instance.new("UICorner", clickBtn).CornerRadius = UDim.new(0, 6)
 
         clickBtn.Activated:Connect(function()
-            clickBtn.Size = UDim2.new(1, -36, 0, 24)
-            TweenService:Create(clickBtn, TWEEN_INFO_FAST, {Size = UDim2.new(1, -28, 0, 28)}):Play()
+            clickBtn.Size = UDim2.new(1, -32, 0, 22)
+            TweenService:Create(clickBtn, TWEEN_INFO_FAST, {Size = UDim2.new(1, -24, 0, 26)}):Play()
             callback()
         end)
     end
