@@ -84,7 +84,7 @@ function Library.CreateWindow(titleText: string)
     self.LeftTabScroll.ScrollBarThickness = 0
     self.LeftTabScroll.ScrollingDirection = Enum.ScrollingDirection.Y
     self.LeftTabScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-    self.LeftTabScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    self.LeftTabScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y 
 
     local TabListLayout = Instance.new("UIListLayout", self.LeftTabScroll)
     TabListLayout.FillDirection = Enum.FillDirection.Vertical
@@ -146,7 +146,7 @@ function Library:CreateTab(tabName: string)
     scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
     scroll.Visible = (tabIndex == 1)
     scroll.Parent = self.ContentFrame
-    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y 
 
     local listLayout = Instance.new("UIListLayout")
     listLayout.SortOrder = Enum.SortOrder.LayoutOrder
