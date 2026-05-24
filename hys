@@ -1,11 +1,11 @@
 local Library = {}
-Library.MainColor = Color3.fromRGB(11, 19, 31)
-Library.BackgroundColor = Color3.fromRGB(7, 12, 20)
-Library.AccentColor = Color3.fromRGB(48, 114, 171)
-Library.OutlineColor = Color3.fromRGB(38, 79, 114)
-Library.TextColor = Color3.fromRGB(240, 245, 250)
-Library.PlaceholderColor = Color3.fromRGB(70, 95, 120)
-Library.Font = Enum.Font.Ubuntu
+Library.MainColor = Color3.fromRGB(11, 23, 38)
+Library.BackgroundColor = Color3.fromRGB(6, 15, 26)
+Library.AccentColor = Color3.fromRGB(0, 180, 255)
+Library.OutlineColor = Color3.fromRGB(16, 44, 74)
+Library.TextColor = Color3.fromRGB(240, 245, 255)
+Library.SecondaryTextColor = Color3.fromRGB(120, 150, 180)
+Library.Font = Enum.Font.GothamMedium
 Library.RegistryMap = {}
 
 local ProtectGui = protectgui or (syn and syn.protect_gui) or (function(gui)
@@ -19,13 +19,12 @@ local CoreGui = cloneref(game:GetService("CoreGui"))
 
 local ScreenGui = Instance.new("ScreenGui")
 ProtectGui(ScreenGui)
-ScreenGui.Name = "KeySystem"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.DisplayOrder = 999999
+ScreenGui.Name = "YX_Style_UI"
 ScreenGui.Parent = CoreGui
 
 function Library:SaveKey(KeyPath, FileName, key)
     if not (isfolder and makefolder and writefile) then
+        warn("File system functions are not available.")
         return
     end
     if not isfolder(KeyPath) then
@@ -36,6 +35,7 @@ end
 
 function Library:LoadKey(KeyPath, FileName)
     if not (isfolder and readfile) then
+        warn("File system functions are not available.")
         return nil
     end
     if isfolder(KeyPath) and isfile(KeyPath .. "/" .. FileName) then
@@ -61,9 +61,11 @@ function Library:CreateLabel(Properties)
         TextSize = 14,
         TextStrokeTransparency = 1,
     })
+    
     for Property, Value in next, Properties do
         Label[Property] = Value
     end
+    
     return Label
 end
 
@@ -71,16 +73,36 @@ function Library:AddToRegistry(Object, Properties)
     self.RegistryMap[Object] = { Properties = Properties }
 end
 
+function Library:AnimateButton(Button)
+    local OriginalColor = Button.BackgroundColor3
+    
+    Button.MouseEnter:Connect(function()
+        local Tween = TweenService:Create(Button, TweenInfo.new(0.3), {
+            BackgroundColor3 = self.AccentColor,
+            TextColor3 = Color3.new(1, 1, 1)
+        })
+        Tween:Play()
+    end)
+
+    Button.MouseLeave:Connect(function()
+        local Tween = TweenService:Create(Button, TweenInfo.new(0.3), {
+            BackgroundColor3 = OriginalColor,
+            TextColor3 = self.TextColor
+        })
+        Tween:Play()
+    end)
+end
+
 function Library:Destroy()
-    local old = CoreGui:FindFirstChild("KeySystem")
-    if old then old:Destroy() end
+    local target = cloneref(game:GetService("CoreGui")):FindFirstChild("YX_Style_UI")
+    if target then target:Destroy() end
 end
 
 function Library:MakeDraggable(Frame)
     local Dragging, DragInput, DragStart, StartPos
 
     Frame.InputBegan:Connect(function(Input)
-        if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 then
             Dragging = true
             DragStart = Input.Position
             StartPos = Frame.Position
@@ -94,7 +116,7 @@ function Library:MakeDraggable(Frame)
     end)
 
     Frame.InputChanged:Connect(function(Input)
-        if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then
+        if Input.UserInputType == Enum.UserInputType.MouseMovement then
             DragInput = Input
         end
     end)
@@ -113,116 +135,72 @@ function Library:CreateWindow(Title, Size)
 
     local Outer = Library:Create('Frame', {
         AnchorPoint = Vector2.new(0.5, 0.5),
-        BackgroundColor3 = Library.BackgroundColor,
+        BackgroundColor3 = Library.OutlineColor,
         BorderSizePixel = 0,
         Position = UDim2.fromScale(0.5, 0.5),
-        Size = UDim2.fromOffset(780, 400),
+        Size = Size or UDim2.fromOffset(550, 320),
         Visible = true,
         ZIndex = 1,
         Parent = ScreenGui
     })
     
-    local OuterCorner = Library:Create('UICorner', {
-        CornerRadius = UDim.new(0, 14),
+    Library:Create('UICorner', {
+        CornerRadius = UDim.new(0, 10),
         Parent = Outer
     })
     
-    local OuterStroke = Library:Create('UIStroke', {
-        Color = Library.OutlineColor,
-        Thickness = 1.8,
+    Library:Create('UIStroke', {
+        Color = Library.AccentColor,
+        Thickness = 1.5,
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
         Parent = Outer
     })
 
     Library:MakeDraggable(Outer)
 
-    local TopBar = Library:Create('Frame', {
+    local Inner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor,
         BorderSizePixel = 0,
-        Position = UDim2.fromOffset(0, 0),
-        Size = UDim2.new(1, 0, 0, 45),
-        ZIndex = 2,
+        Position = UDim2.new(0, 1, 0, 1),
+        Size = UDim2.new(1, -2, 1, -2),
+        ZIndex = 1,
         Parent = Outer
     })
     
-    local TopCorner = Library:Create('UICorner', {
-        CornerRadius = UDim.new(0, 14),
-        Parent = TopBar
-    })
-    
-    local TopLine = Library:Create('Frame', {
-        BackgroundColor3 = Library.OutlineColor,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0, 0, 1, -1),
-        Size = UDim2.new(1, 0, 0, 1),
-        ZIndex = 3,
-        Parent = TopBar
+    Library:Create('UICorner', {
+        CornerRadius = UDim.new(0, 9),
+        Parent = Inner
     })
 
     local TitleLabel = Library:CreateLabel({
-        Position = UDim2.fromOffset(20, 0),
-        Size = UDim2.new(0.5, 0, 1, 0),
+        Position = UDim2.new(0, 15, 0, 8),
+        Size = UDim2.new(1, -30, 0, 25),
         Text = Title,
         TextSize = 16,
-        Font = Enum.Font.UbuntuBold,
+        Font = Enum.Font.GothamBold,
         TextColor3 = Library.TextColor,
         TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 3,
-        Parent = TopBar
-    })
-
-    local SideBar = Library:Create('Frame', {
-        BackgroundColor3 = Library.MainColor,
-        BorderSizePixel = 0,
-        Position = UDim2.fromOffset(0, 45),
-        Size = UDim2.new(0, 180, 1, -45),
         ZIndex = 2,
-        Parent = Outer
-    })
-    
-    local SideCorner = Library:Create('UICorner', {
-        CornerRadius = UDim.new(0, 14),
-        Parent = SideBar
-    })
-    
-    local SideLine = Library:Create('Frame', {
-        BackgroundColor3 = Library.OutlineColor,
-        BorderSizePixel = 0,
-        Position = UDim2.new(1, -1, 0, 0),
-        Size = UDim2.new(0, 1, 1, 0),
-        ZIndex = 3,
-        Parent = SideBar
+        Parent = Inner
     })
 
-    local SideList = Library:Create('UIListLayout', {
-        Padding = UDim.new(0, 6),
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Parent = SideBar
-    })
-    
-    local SidePadding = Library:Create('UIPadding', {
-        PaddingTop = UDim.new(0, 15),
-        PaddingLeft = UDim.new(0, 12),
-        PaddingRight = UDim.new(0, 12),
-        Parent = SideBar
-    })
-
-    local MainSection = Library:Create('ScrollingFrame', {
-        BackgroundTransparency = 1,
+    local MainSection = Library:Create('Frame', {
+        BackgroundColor3 = Library.BackgroundColor,
         BorderSizePixel = 0,
-        Position = UDim2.fromOffset(195, 60),
-        Size = UDim2.new(1, -210, 1, -75),
-        CanvasSize = UDim2.new(0, 0, 0, 0),
-        AutomaticCanvasSize = Enum.AutomaticSize.Y,
-        ScrollBarThickness = 4,
-        ScrollBarImageColor3 = Library.OutlineColor,
-        ZIndex = 2,
-        Parent = Outer
+        Position = UDim2.new(0, 12, 0, 40),
+        Size = UDim2.new(1, -24, 1, -55),
+        ZIndex = 1,
+        Parent = Inner
     })
     
-    local MainList = Library:Create('UIListLayout', {
-        Padding = UDim.new(0, 12),
-        SortOrder = Enum.SortOrder.LayoutOrder,
+    Library:Create('UICorner', {
+        CornerRadius = UDim.new(0, 6),
+        Parent = MainSection
+    })
+    
+    Library:Create('UIStroke', {
+        Color = Library.OutlineColor,
+        Thickness = 1,
         Parent = MainSection
     })
 
@@ -230,95 +208,113 @@ function Library:CreateWindow(Title, Size)
         Outer:Destroy()
     end
 
-    function Window:AddTextBox(Text)
+    function Window:AddTextBox(Text, Position)
         local TextBoxContainer = Library:Create('Frame', {
             BackgroundColor3 = Library.MainColor,
             BorderSizePixel = 0,
-            Size = UDim2.new(1, -10, 0, 42),
-            ZIndex = 3,
+            Position = Position,
+            Size = UDim2.new(0.8, 0, 0, 35),
+            ZIndex = 2,
             Parent = MainSection
         })
 
         local Corner = Library:Create('UICorner', {
-            CornerRadius = UDim.new(0, 8),
+            CornerRadius = UDim.new(0, 6),
             Parent = TextBoxContainer
         })
         
-        local BoxStroke = Library:Create('UIStroke', {
+        local Stroke = Library:Create('UIStroke', {
             Color = Library.OutlineColor,
-            Thickness = 1.2,
+            Thickness = 1,
             Parent = TextBoxContainer
         })
 
         local TextBox = Library:Create('TextBox', {
             BackgroundTransparency = 1,
-            Position = UDim2.new(0, 14, 0, 0),
-            Size = UDim2.new(1, -28, 1, 0),
+            Position = UDim2.new(0, 12, 0, 0),
+            Size = UDim2.new(1, -24, 1, 0),
             Font = Library.Font,
             PlaceholderText = Text,
-            PlaceholderColor3 = Library.PlaceholderColor,
+            PlaceholderColor3 = Library.SecondaryTextColor,
             Text = "",
             TextColor3 = Library.TextColor,
             TextSize = 14,
             TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 4,
+            ZIndex = 3,
             Parent = TextBoxContainer
         })
         
         TextBox.Focused:Connect(function()
-            TweenService:Create(BoxStroke, TweenInfo.new(0.2), { Color = Library.AccentColor, Thickness = 1.6 }):Play()
+            TweenService:Create(TextBoxContainer, TweenInfo.new(0.2), {
+                BackgroundColor3 = Library.BackgroundColor
+            }):Play()
+            TweenService:Create(Stroke, TweenInfo.new(0.2), {
+                Color = Library.AccentColor
+            }):Play()
         end)
 
         TextBox.FocusLost:Connect(function()
-            TweenService:Create(BoxStroke, TweenInfo.new(0.2), { Color = Library.OutlineColor, Thickness = 1.2 }):Play()
+            TweenService:Create(TextBoxContainer, TweenInfo.new(0.2), {
+                BackgroundColor3 = Library.MainColor
+            }):Play()
+            TweenService:Create(Stroke, TweenInfo.new(0.2), {
+                Color = Library.OutlineColor
+            }):Play()
         end)
         
         return TextBox
     end
     
-    function Window:AddButton(Text, Callback)
+    function Window:AddButton(Text, Position, Callback)
         local Button = Library:Create('TextButton', {
             BackgroundColor3 = Library.MainColor,
             BorderSizePixel = 0,
-            Size = UDim2.new(1, -10, 0, 42),
-            Font = Enum.Font.UbuntuBold,
+            Position = Position,
+            Size = UDim2.new(0.4, 0, 0, 35),
+            Font = Library.Font,
             Text = Text,
             TextColor3 = Library.TextColor,
             TextSize = 14,
-            ZIndex = 3,
+            ZIndex = 2,
             AutoButtonColor = false,
             Parent = MainSection
         })
         
         local Corner = Library:Create('UICorner', {
-            CornerRadius = UDim.new(0, 8),
+            CornerRadius = UDim.new(0, 20),
             Parent = Button
         })
         
-        local ButtonStroke = Library:Create('UIStroke', {
-            Color = Library.OutlineColor,
-            Thickness = 1.2,
+        local Stroke = Library:Create('UIStroke', {
+            Color = Library.AccentColor,
+            Thickness = 1,
             Parent = Button
         })
 
         local function StartAnimation()
-            TweenService:Create(Button, TweenInfo.new(0.15), { BackgroundColor3 = Library.AccentColor }):Play()
-            TweenService:Create(ButtonStroke, TweenInfo.new(0.15), { Color = Library.AccentColor }):Play()
+            TweenService:Create(Button, TweenInfo.new(0.2), {
+                BackgroundColor3 = Library.AccentColor,
+                TextColor3 = Color3.fromRGB(10, 10, 10)
+            }):Play()
         end
     
         local function EndAnimation()
-            TweenService:Create(Button, TweenInfo.new(0.15), { BackgroundColor3 = Library.MainColor }):Play()
-            TweenService:Create(ButtonStroke, TweenInfo.new(0.15), { Color = Library.OutlineColor }):Play()
+            TweenService:Create(Button, TweenInfo.new(0.2), {
+                BackgroundColor3 = Library.MainColor,
+                TextColor3 = Library.TextColor
+            }):Play()
         end
     
         Button.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+               input.UserInputType == Enum.UserInputType.Touch then
                 StartAnimation()
             end
         end)
     
         Button.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+               input.UserInputType == Enum.UserInputType.Touch then
                 EndAnimation()
                 Callback()
             end
@@ -330,32 +326,33 @@ function Library:CreateWindow(Title, Size)
         return Button
     end
 
-    function Window:AddToggle(Text, DefaultState)
+    function Window:AddToggle(Text, Position, DefaultState)
         local Toggle = Library:Create('TextButton', {
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, -10, 0, 32),
+            Position = UDim2.new(Position.X.Scale, Position.X.Offset, Position.Y.Scale, Position.Y.Offset),
+            Size = UDim2.new(0.8, 0, 0, 24),
             Text = "",
-            ZIndex = 3,
+            ZIndex = 2,
             Parent = MainSection
         })
     
         local Checkbox = Library:Create('Frame', {
             BackgroundColor3 = Library.MainColor,
             BorderSizePixel = 0,
-            Position = UDim2.new(0, 4, 0.5, -11),
-            Size = UDim2.fromOffset(22, 22),
-            ZIndex = 4,
+            Position = UDim2.new(0, 0, 0, 2),
+            Size = UDim2.new(0, 20, 0, 20),
+            ZIndex = 3,
             Parent = Toggle
         })
     
-        local CheckboxCorner = Library:Create('UICorner', {
-            CornerRadius = UDim.new(0, 6),
+        Library:Create('UICorner', {
+            CornerRadius = UDim.new(0, 5),
             Parent = Checkbox
         })
         
         local CheckboxStroke = Library:Create('UIStroke', {
             Color = DefaultState and Library.AccentColor or Library.OutlineColor,
-            Thickness = 1.2,
+            Thickness = 1,
             Parent = Checkbox
         })
     
@@ -363,25 +360,21 @@ function Library:CreateWindow(Title, Size)
             BackgroundTransparency = 1,
             Position = UDim2.new(0, 0, 0, -1),
             Size = UDim2.new(1, 0, 1, 0),
-            Font = Enum.Font.UbuntuBold,
+            Font = Enum.Font.GothamBold,
             Text = "✓",
-            TextColor3 = Library.TextColor,
+            TextColor3 = Library.AccentColor,
             TextSize = 14,
             TextTransparency = DefaultState and 0 or 1,
-            ZIndex = 5,
+            ZIndex = 4,
             Parent = Checkbox
         })
-        
-        if DefaultState then Checkbox.BackgroundColor3 = Library.AccentColor end
     
         local Label = Library:CreateLabel({
-            Position = UDim2.new(0, 38, 0, 0),
-            Size = UDim2.new(1, -38, 1, 0),
+            Position = UDim2.new(0, 30, 0, 0),
+            Size = UDim2.new(0.7, 0, 1, 0),
             Text = Text,
-            TextSize = 14,
-            TextColor3 = Library.TextColor,
             TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 4,
+            ZIndex = 3,
             Parent = Toggle
         })
     
@@ -389,21 +382,28 @@ function Library:CreateWindow(Title, Size)
         local IsAnimating = false
 
         local function ToggleState(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or 
+               input.UserInputType == Enum.UserInputType.Touch then
                 if not IsAnimating then
                     IsAnimating = true
                     State = not State
                     
-                    local targetTransparency = State and 0 or 1
-                    local targetBgColor = State and Library.AccentColor or Library.MainColor
-                    local targetStrokeColor = State and Library.AccentColor or Library.OutlineColor
+                    TweenService:Create(Checkmark, TweenInfo.new(0.2), {
+                        TextTransparency = State and 0 or 1
+                    }):Play()
                     
-                    TweenService:Create(Checkmark, TweenInfo.new(0.15), { TextTransparency = targetTransparency }):Play()
-                    TweenService:Create(Checkbox, TweenInfo.new(0.15), { BackgroundColor3 = targetBgColor }):Play()
-                    TweenService:Create(CheckboxStroke, TweenInfo.new(0.15), { Color = targetStrokeColor }):Play()
+                    TweenService:Create(CheckboxStroke, TweenInfo.new(0.2), {
+                        Color = State and Library.AccentColor or Library.OutlineColor
+                    }):Play()
                     
-                    task.wait(0.15)
+                    task.wait(0.2)
                     IsAnimating = false
+
+                    if input.UserInputType == Enum.UserInputType.Touch and UserInputService.TouchEnabled then
+                        if UserInputService.VibrationMotor then
+                            UserInputService.VibrationMotor:Vibrate(0.1)
+                        end
+                    end
                 end
             end
         end
@@ -413,18 +413,16 @@ function Library:CreateWindow(Title, Size)
         return {
             GetState = function() return State end,
             SetState = function(NewState)
-                if not IsAnimating and State ~= NewState then
+                if not IsAnimating then
                     IsAnimating = true
                     State = NewState
-                    local targetTransparency = State and 0 or 1
-                    local targetBgColor = State and Library.AccentColor or Library.MainColor
-                    local targetStrokeColor = State and Library.AccentColor or Library.OutlineColor
-                    
-                    TweenService:Create(Checkmark, TweenInfo.new(0.15), { TextTransparency = targetTransparency }):Play()
-                    TweenService:Create(Checkbox, TweenInfo.new(0.15), { BackgroundColor3 = targetBgColor }):Play()
-                    TweenService:Create(CheckboxStroke, TweenInfo.new(0.15), { Color = targetStrokeColor }):Play()
-                    
-                    task.wait(0.15)
+                    TweenService:Create(Checkmark, TweenInfo.new(0.2), {
+                        TextTransparency = State and 0 or 1
+                    }):Play()
+                    TweenService:Create(CheckboxStroke, TweenInfo.new(0.2), {
+                        Color = State and Library.AccentColor or Library.OutlineColor
+                    }):Play()
+                    task.wait(0.2)
                     IsAnimating = false
                 end
             end,
@@ -433,37 +431,6 @@ function Library:CreateWindow(Title, Size)
             end
         }
     end    
-
-    function Window:AddTab(Name)
-        local TabBtn = Library:Create('TextButton', {
-            BackgroundColor3 = Library.BackgroundColor,
-            BackgroundTransparency = 1,
-            BorderSizePixel = 0,
-            Size = UDim2.new(1, 0, 0, 36),
-            Font = Enum.Font.UbuntuBold,
-            Text = "  " .. Name,
-            TextColor3 = Color3.fromRGB(150, 175, 200),
-            TextSize = 14,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 3,
-            Parent = SideBar
-        })
-        
-        local TabCorner = Library:Create('UICorner', {
-            CornerRadius = UDim.new(0, 6),
-            Parent = TabBtn
-        })
-        
-        TabBtn.MouseEnter:Connect(function()
-            TweenService:Create(TabBtn, TweenInfo.new(0.15), { BackgroundTransparency = 0.6, TextColor3 = Library.TextColor }):Play()
-        end)
-        
-        TabBtn.MouseLeave:Connect(function()
-            TweenService:Create(TabBtn, TweenInfo.new(0.15), { BackgroundTransparency = 1, TextColor3 = Color3.fromRGB(150, 175, 200) }):Play()
-        end)
-        
-        return TabBtn
-    end
 
     Window.Outer = Outer
     return Window
