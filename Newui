@@ -104,7 +104,7 @@ function Library.CreateWindow(titleText: string)
         UserCard.Size = UDim2.new(0, 95, 0, 40)
         UserCard.Position = UDim2.new(0, 12, 1, -50)
         UserCard.BackgroundColor3 = Color3.fromHex("#F5F7FA")
-        Instance.new("UICorner", UserCard).CornerRadius = UDim.new(0, 8)
+        Instance.new("UICorner", UserCard).CornerRadius = UDim.new(0.5, 0)
         local UserStroke = Instance.new("UIStroke", UserCard)
         UserStroke.Color = Color3.fromHex("#E4E8ED")
 
@@ -202,7 +202,7 @@ function Library:CreateTab(tabName: string)
     local tabCard = Instance.new("Frame", self.LeftTabScroll)
     tabCard.Size = UDim2.new(1, -5, 0, 32)
     tabCard.BackgroundColor3 = (tabIndex == 1) and Color3.fromHex("#5C6BC0") or Color3.fromHex("#E8EBF2")
-    Instance.new("UICorner", tabCard).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", tabCard).CornerRadius = UDim.new(0.5, 0)
 
     local btn = Instance.new("TextButton", tabCard)
     btn.Text = tabName
@@ -245,13 +245,13 @@ function Library:CreateTab(tabName: string)
         local card = Instance.new("Frame", scroll)
         card.Size = UDim2.new(1, 0, 0, 40) 
         card.BackgroundColor3 = Color3.fromHex("#F5F7FA")
-        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0.5, 0)
         Instance.new("UIStroke", card).Color = Color3.fromHex("#E4E8ED")
         
         local lbl = Instance.new("TextLabel", card)
         lbl.Text = text
         lbl.Size = UDim2.new(0.6, 0, 1, 0)
-        lbl.Position = UDim2.fromOffset(14, 0)
+        lbl.Position = UDim2.fromOffset(20, 0)
         lbl.TextColor3 = Color3.fromHex("#333333")
         lbl.TextSize = 12
         lbl.Font = Enum.Font.SourceSansBold
@@ -261,7 +261,7 @@ function Library:CreateTab(tabName: string)
         local switchBtn = Instance.new("ImageButton", card)
         switchBtn.Size = UDim2.fromOffset(36, 20)
         switchBtn.AnchorPoint = Vector2.new(1, 0.5)
-        switchBtn.Position = UDim2.new(1, -12, 0.5, 0)
+        switchBtn.Position = UDim2.new(1, -20, 0.5, 0)
         switchBtn.BackgroundColor3 = Color3.fromHex("#D0D5DD")
         Instance.new("UICorner", switchBtn).CornerRadius = UDim.new(0.5, 0)
 
@@ -285,13 +285,13 @@ function Library:CreateTab(tabName: string)
         local card = Instance.new("Frame", scroll)
         card.Size = UDim2.new(1, 0, 0, 40)
         card.BackgroundColor3 = Color3.fromHex("#F5F7FA")
-        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0.5, 0)
         Instance.new("UIStroke", card).Color = Color3.fromHex("#E4E8ED")
 
         local lbl = Instance.new("TextLabel", card)
         lbl.Text = title
         lbl.Size = UDim2.new(0.4, 0, 1, 0)
-        lbl.Position = UDim2.fromOffset(14, 0)
+        lbl.Position = UDim2.fromOffset(20, 0)
         lbl.TextColor3 = Color3.fromHex("#333333")
         lbl.TextSize = 12
         lbl.Font = Enum.Font.SourceSansBold
@@ -301,14 +301,14 @@ function Library:CreateTab(tabName: string)
         local box = Instance.new("TextBox", card)
         box.Size = UDim2.new(0.5, 0, 0, 24)
         box.AnchorPoint = Vector2.new(1, 0.5)
-        box.Position = UDim2.new(1, -12, 0.5, 0)
+        box.Position = UDim2.new(1, -20, 0.5, 0)
         box.BackgroundColor3 = Color3.fromHex("#E9EDF2")
         box.PlaceholderText = placeholder
         box.TextColor3 = Color3.fromHex("#2C3E50")
         box.TextSize = 11
         box.Text = ""
         box.Font = Enum.Font.SourceSansBold
-        Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
+        Instance.new("UICorner", box).CornerRadius = UDim.new(0.5, 0)
         
         box.FocusLost:Connect(function() 
             callback(box.Text)
@@ -319,13 +319,13 @@ function Library:CreateTab(tabName: string)
         local card = Instance.new("Frame", scroll)
         card.Size = UDim2.new(1, 0, 0, 40)
         card.BackgroundColor3 = Color3.fromHex("#F5F7FA")
-        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0.5, 0)
         Instance.new("UIStroke", card).Color = Color3.fromHex("#E4E8ED")
 
         local info = Instance.new("TextLabel", card)
         info.Text = title .. ": " .. defV
         info.Size = UDim2.new(0.5, 0, 1, 0)
-        info.Position = UDim2.fromOffset(14, 0)
+        info.Position = UDim2.fromOffset(20, 0)
         info.TextColor3 = Color3.fromHex("#333333")
         info.TextSize = 12
         info.Font = Enum.Font.SourceSansBold
@@ -336,7 +336,7 @@ function Library:CreateTab(tabName: string)
         track.Text = ""
         track.Size = UDim2.new(0.4, 0, 0, 6)
         track.AnchorPoint = Vector2.new(1, 0.5)
-        track.Position = UDim2.new(1, -16, 0.5, 0)
+        track.Position = UDim2.new(1, -24, 0.5, 0)
         track.BackgroundColor3 = Color3.fromHex("#E1E5EA")
         Instance.new("UICorner", track).CornerRadius = UDim.new(0.5, 0)
 
@@ -376,14 +376,14 @@ function Library:CreateTab(tabName: string)
         card.ClipsDescendants = true
         card.ZIndex = 10
 
-        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 20)
         local cardStroke = Instance.new("UIStroke", card)
         cardStroke.Color = Color3.fromHex("#E4E8ED")
 
         local nameLabel = Instance.new("TextLabel", card)
         nameLabel.Text = title
         nameLabel.Size = UDim2.new(0.4, 0, 0, 40)
-        nameLabel.Position = UDim2.fromOffset(14, 0)
+        nameLabel.Position = UDim2.fromOffset(20, 0)
         nameLabel.TextColor3 = Color3.fromHex("#333333")
         nameLabel.TextSize = 12
         nameLabel.Font = Enum.Font.SourceSansBold
@@ -395,26 +395,26 @@ function Library:CreateTab(tabName: string)
         boxBtn.Text = currentSelectedText or "请选择..."
         boxBtn.Size = UDim2.new(0.45, 0, 0, 24)
         boxBtn.AnchorPoint = Vector2.new(1, 0)
-        boxBtn.Position = UDim2.new(1, -12, 0, 8)
+        boxBtn.Position = UDim2.new(1, -20, 0, 8)
         boxBtn.BackgroundColor3 = Color3.fromHex("#E9EDF2")
         boxBtn.TextColor3 = currentSelectedText and Color3.fromHex("#5C6BC0") or Color3.fromHex("#7A8B9E")
         boxBtn.TextSize = 11
         boxBtn.Font = Enum.Font.SourceSansBold
         boxBtn.ZIndex = 11
-        Instance.new("UICorner", boxBtn).CornerRadius = UDim.new(0, 6)
+        Instance.new("UICorner", boxBtn).CornerRadius = UDim.new(0.5, 0)
 
         local arrow = Instance.new("TextLabel", boxBtn)
         arrow.Text = "▼"
         arrow.Size = UDim2.fromScale(0, 1)
-        arrow.Position = UDim2.new(1, -14, 0, 0)
+        arrow.Position = UDim2.new(1, -16, 0, 0)
         arrow.TextColor3 = Color3.fromHex("#7A8B9E")
         arrow.TextSize = 9
         arrow.BackgroundTransparency = 1
         arrow.ZIndex = 12
 
         local listScroll = Instance.new("ScrollingFrame", card)
-        listScroll.Size = UDim2.new(1, -24, 0, 80)
-        listScroll.Position = UDim2.fromOffset(12, 42)
+        listScroll.Size = UDim2.new(1, -40, 0, 80)
+        listScroll.Position = UDim2.fromOffset(20, 42)
         listScroll.BackgroundTransparency = 1
         listScroll.CanvasSize = UDim2.fromOffset(0, #options * 24)
         listScroll.ScrollBarThickness = 2
@@ -469,7 +469,7 @@ function Library:CreateTab(tabName: string)
         local card = Instance.new("Frame", scroll)
         card.Size = UDim2.new(1, 0, 0, 40)
         card.BackgroundColor3 = Color3.fromHex("#F5F7FA")
-        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0.5, 0)
         Instance.new("UIStroke", card).Color = Color3.fromHex("#E4E8ED")
 
         local clickBtn = Instance.new("TextButton", card)
@@ -481,7 +481,7 @@ function Library:CreateTab(tabName: string)
         clickBtn.TextColor3 = Color3.new(1, 1, 1)
         clickBtn.TextSize = 12
         clickBtn.Font = Enum.Font.SourceSansBold
-        Instance.new("UICorner", clickBtn).CornerRadius = UDim.new(0, 6)
+        Instance.new("UICorner", clickBtn).CornerRadius = UDim.new(0.5, 0)
 
         clickBtn.Activated:Connect(function()
             clickBtn.Size = UDim2.new(1, -32, 0, 22)
