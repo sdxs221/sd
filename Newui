@@ -308,6 +308,7 @@ function Library:CreateTab(tabName: string)
         box.TextSize = 11
         box.Text = ""
         box.Font = Enum.Font.SourceSansBold
+        box.TextTruncate = Enum.TextTruncate.AtEnd
         Instance.new("UICorner", box).CornerRadius = UDim.new(0.5, 0)
         
         box.FocusLost:Connect(function() 
@@ -366,9 +367,17 @@ function Library:CreateTab(tabName: string)
         end)
     end
 
-    function pageMethods:AddDropdown(title: string, options: {string}, defaultIndex: number?, callback: (string) -> ())
+    function pageMethods:AddDropdown(title: string, options: {string}, defaultIndices: {number}?, callback: ({string}) -> ())
         local isOpened = false
-        local currentSelectedText = (defaultIndex and defaultIndex > 0) and options[defaultIndex] or nil
+        local selectedItems = {}
+        
+        if defaultIndices then
+            for _, idx in ipairs(defaultIndices) do
+                if options[idx] then
+                    selectedItems[options[idx]] = true
+                end
+            end
+        end
 
         local card = Instance.new("Frame", scroll)
         card.Size = UDim2.new(1, 0, 0, 40)
@@ -392,14 +401,13 @@ function Library:CreateTab(tabName: string)
         nameLabel.ZIndex = 11
 
         local boxBtn = Instance.new("TextButton", card)
-        boxBtn.Text = currentSelectedText or "请选择..."
         boxBtn.Size = UDim2.new(0.45, 0, 0, 24)
         boxBtn.AnchorPoint = Vector2.new(1, 0)
         boxBtn.Position = UDim2.new(1, -20, 0, 8)
         boxBtn.BackgroundColor3 = Color3.fromHex("#E9EDF2")
-        boxBtn.TextColor3 = currentSelectedText and Color3.fromHex("#5C6BC0") or Color3.fromHex("#7A8B9E")
         boxBtn.TextSize = 11
         boxBtn.Font = Enum.Font.SourceSansBold
+        boxBtn.TextTruncate = Enum.TextTruncate.AtEnd
         boxBtn.ZIndex = 11
         Instance.new("UICorner", boxBtn).CornerRadius = UDim.new(0.5, 0)
 
@@ -426,30 +434,75 @@ function Library:CreateTab(tabName: string)
         internalLayout.SortOrder = Enum.SortOrder.LayoutOrder
         internalLayout.Padding = UDim.new(0, 2)
 
+        local optionButtons = {}
+
+        local function UpdateDisplay()
+            local displayList = {}
+            local returnList = {}
+            for _, opt in ipairs(options) do
+                if selectedItems[opt] then
+                    table.insert(displayList, opt)
+                    table.insert(returnList, opt)
+                end
+            end
+            
+            if #displayList > 0 then
+                boxBtn.Text = table.concat(displayList, ", ")
+                boxBtn.TextColor3 = Color3.fromHex("#5C6BC0")
+            else
+                boxBtn.Text = "请选择..."
+                boxBtn.TextColor3 = Color3.fromHex("#7A8B9E")
+            end
+
+            for opt, btnObj in pairs(optionButtons) do
+                if selectedItems[opt] then
+                    btnObj.Mark.Text = "✓"
+                    btnObj.Text = "      " .. opt
+                    btnObj.TextColor3 = Color3.fromHex("#5C6BC0")
+                else
+                    btnObj.Mark.Text = ""
+                    btnObj.Text = "   " .. opt
+                    btnObj.TextColor3 = Color3.fromHex("#555555")
+                end
+            end
+            
+            callback(returnList)
+        end
+
         for i, optionName in ipairs(options) do
             local optBtn = Instance.new("TextButton", listScroll)
-            optBtn.Text = "   " .. optionName
             optBtn.Size = UDim2.new(1, 0, 0, 22)
             optBtn.BackgroundTransparency = 1
-            optBtn.TextColor3 = Color3.fromHex("#555555")
             optBtn.TextSize = 11
             optBtn.Font = Enum.Font.SourceSansBold
             optBtn.TextXAlignment = Enum.TextXAlignment.Left
             optBtn.LayoutOrder = i
             optBtn.ZIndex = 13
 
-            optBtn.Activated:Connect(function()
-                currentSelectedText = optionName
-                boxBtn.Text = optionName
-                boxBtn.TextColor3 = Color3.fromHex("#5C6BC0")
-                callback(optionName)
+            local markLbl = Instance.new("TextLabel", optBtn)
+            markLbl.Name = "Mark"
+            markLbl.Size = UDim2.fromOffset(20, 22)
+            markLbl.Position = UDim2.fromOffset(5, 0)
+            markLbl.BackgroundTransparency = 1
+            markLbl.TextColor3 = Color3.fromHex("#5C6BC0")
+            markLbl.TextSize = 12
+            markLbl.Font = Enum.Font.SourceSansBold
+            markLbl.TextXAlignment = Enum.TextXAlignment.Center
+            markLbl.ZIndex = 14
 
-                isOpened = false
-                arrow.Text = "▼"
-                listScroll.Visible = false
-                TweenService:Create(card, TWEEN_INFO_FAST, {Size = UDim2.new(1, 0, 0, 40)}):Play()
+            optionButtons[optionName] = optBtn
+
+            optBtn.Activated:Connect(function()
+                if selectedItems[optionName] then
+                    selectedItems[optionName] = nil
+                else
+                    selectedItems[optionName] = true
+                end
+                UpdateDisplay()
             end)
         end
+
+        UpdateDisplay()
 
         boxBtn.Activated:Connect(function()
             isOpened = not isOpened
