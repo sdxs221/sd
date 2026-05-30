@@ -3,10 +3,12 @@ Library.__index = Library
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
 
 local TWEEN_INFO_FAST = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local TWEEN_INFO_BOUNCE = TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 local TWEEN_INFO_PAGE = TweenInfo.new(0.15, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out)
+local TWEEN_INFO_ISLAND = TweenInfo.new(0.3, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
 
 local function MakeDraggable(gui: Frame)
     local dragging, dragInput, dragStart, startPos = false, nil, nil, nil
@@ -78,7 +80,7 @@ function Library.CreateWindow(titleText: string)
     TitleLabel.BackgroundTransparency = 1
 
     self.LeftTabScroll = Instance.new("ScrollingFrame", self.MainPanel)
-    self.LeftTabScroll.Size = UDim2.new(0, 95, 1, -55)
+    self.LeftTabScroll.Size = UDim2.new(0, 95, 1, -100)
     self.LeftTabScroll.Position = UDim2.fromOffset(12, 45)
     self.LeftTabScroll.BackgroundTransparency = 1
     self.LeftTabScroll.ScrollBarThickness = 0
@@ -96,6 +98,63 @@ function Library.CreateWindow(titleText: string)
     self.ContentFrame.Position = UDim2.fromOffset(120, 45)
     self.ContentFrame.BackgroundTransparency = 1
     self.ContentFrame.ClipsDescendants = true
+
+    local localPlayer = Players.LocalPlayer
+    if localPlayer then
+        local UserCard = Instance.new("Frame", self.MainPanel)
+        UserCard.Size = UDim2.new(0, 95, 0, 40)
+        UserCard.Position = UDim2.new(0, 12, 1, -50)
+        UserCard.BackgroundColor3 = Color3.fromHex("#F5F7FA")
+        Instance.new("UICorner", UserCard).CornerRadius = UDim.new(0, 8)
+        local UserStroke = Instance.new("UIStroke", UserCard)
+        UserStroke.Color = Color3.fromHex("#E4E8ED")
+
+        local AvatarImg = Instance.new("ImageLabel", UserCard)
+        AvatarImg.Size = UDim2.fromOffset(28, 28)
+        AvatarImg.Position = UDim2.fromOffset(6, 6)
+        AvatarImg.BackgroundColor3 = Color3.fromHex("#E1E5EA")
+        Instance.new("UICorner", AvatarImg).CornerRadius = UDim.new(0.5, 0)
+        
+        task.spawn(function()
+            local userId = localPlayer.UserId
+            local thumbType = Enum.ThumbnailType.HeadShot
+            local thumbSize = Enum.ThumbnailSize.Size48x48
+            local content, isReady = Players:GetUserThumbnailAsync(userId, thumbType, thumbSize)
+            if isReady then AvatarImg.Image = content end
+        end)
+
+        local NameLbl = Instance.new("TextLabel", UserCard)
+        NameLbl.Text = localPlayer.DisplayName or localPlayer.Name
+        NameLbl.Size = UDim2.new(1, -44, 1, 0)
+        NameLbl.Position = UDim2.fromOffset(38, 0)
+        NameLbl.TextColor3 = Color3.fromHex("#4A5568")
+        NameLbl.TextSize = 10
+        NameLbl.Font = Enum.Font.SourceSansBold
+        NameLbl.TextXAlignment = Enum.TextXAlignment.Left
+        NameLbl.BackgroundTransparency = 1
+        NameLbl.TextTruncate = Enum.TextTruncate.AtEnd
+    end
+
+    self.IslandNotification = Instance.new("Frame", self.ScreenGui)
+    self.IslandNotification.Size = UDim2.fromOffset(100, 30)
+    self.IslandNotification.Position = UDim2.new(0.5, 0, 0, -50)
+    self.IslandNotification.AnchorPoint = Vector2.new(0.5, 0)
+    self.IslandNotification.BackgroundColor3 = Color3.fromHex("#1A1A1A")
+    self.IslandNotification.ClipsDescendants = true
+    Instance.new("UICorner", self.IslandNotification).CornerRadius = UDim.new(0.5, 0)
+
+    local IslandStroke = Instance.new("UIStroke", self.IslandNotification)
+    IslandStroke.Color = Color3.fromHex("#333333")
+    IslandStroke.Thickness = 1.5
+
+    self.IslandText = Instance.new("TextLabel", self.IslandNotification)
+    self.IslandText.Size = UDim2.new(1, -20, 1, 0)
+    self.IslandText.Position = UDim2.fromOffset(10, 0)
+    self.IslandText.BackgroundTransparency = 1
+    self.IslandText.TextColor3 = Color3.new(1, 1, 1)
+    self.IslandText.TextSize = 13
+    self.IslandText.Font = Enum.Font.SourceSansBold
+    self.IslandText.TextTransparency = 1
 
     local function ToggleMenu()
         self.IsMenuOpen = not self.IsMenuOpen
@@ -129,8 +188,32 @@ function Library.CreateWindow(titleText: string)
     CloseBtn.Font = Enum.Font.SourceSansBold
     CloseBtn.Activated:Connect(ToggleMenu)
 
-    self.ScreenGui.Parent = game:GetService("CoreGui")
+    local success, _ = pcall(function() self.ScreenGui.Parent = game:GetService("CoreGui") end)
+    if not success then self.ScreenGui.Parent = localPlayer:WaitForChild("PlayerGui") end
+    
     return self
+end
+
+function Library:Notification(message: string, duration: number?)
+    duration = duration or 2.5
+    local textBound = game:GetService("TextService"):GetTextSize(message, 13, Enum.Font.SourceSansBold, Vector2.new(1000, 30))
+    local targetWidth = math.max(textBound.X + 40, 140)
+
+    self.IslandText.Text = message
+    
+    self.IslandNotification.Position = UDim2.new(0.5, 0, 0, -50)
+    self.IslandNotification.Size = UDim2.fromOffset(40, 20)
+    
+    TweenService:Create(self.IslandNotification, TWEEN_INFO_ISLAND, {Position = UDim2.new(0.5, 0, 0, 20), Size = UDim2.fromOffset(targetWidth, 32)}):Play()
+    task.wait(0.15)
+    TweenService:Create(self.IslandText, TWEEN_INFO_FAST, {TextTransparency = 0}):Play()
+
+    task.delay(duration, function()
+        TweenService:Create(self.IslandText, TWEEN_INFO_FAST, {TextTransparency = 1}):Play()
+        task.wait(0.1)
+        local pullUp = TweenService:Create(self.IslandNotification, TWEEN_INFO_ISLAND, {Position = UDim2.new(0.5, 0, 0, -50), Size = UDim2.fromOffset(40, 20)})
+        pullUp:Play()
+    end)
 end
 
 function Library:CreateTab(tabName: string)
@@ -200,6 +283,7 @@ function Library:CreateTab(tabName: string)
     table.insert(self.Pages, scroll)
 
     local pageMethods = {}
+    local parentLibrary = self
 
     function pageMethods:AddSwitch(text: string, callback: (boolean) -> ())
         local isOn = false
@@ -236,6 +320,10 @@ function Library:CreateTab(tabName: string)
         switchBtn.Activated:Connect(function()
             isOn = not isOn
             callback(isOn)
+            
+            local statusText = isOn and "已开启" or "已关闭"
+            parentLibrary:Notification(text .. " " .. statusText)
+
             TweenService:Create(switchBtn, TWEEN_INFO_FAST, {BackgroundColor3 = isOn and Color3.fromHex("#5C6BC0") or Color3.fromHex("#D0D5DD")}):Play()
             TweenService:Create(dot, TWEEN_INFO_FAST, {Position = isOn and UDim2.new(1, -17, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)}):Play()
         end)
@@ -269,7 +357,11 @@ function Library:CreateTab(tabName: string)
         box.Text = ""
         box.Font = Enum.Font.SourceSansBold
         Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
-        box.FocusLost:Connect(function() callback(box.Text) end)
+        
+        box.FocusLost:Connect(function() 
+            callback(box.Text)
+            parentLibrary:Notification("已设置输入: " .. box.Text)
+        end)
     end
 
     function pageMethods:AddSlider(title: string, minV: number, maxV: number, defV: number, callback: (number) -> ())
@@ -316,7 +408,13 @@ function Library:CreateTab(tabName: string)
         end
         track.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then sliding = true Update(input) end end)
         UserInputService.InputChanged:Connect(function(input) if sliding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then Update(input) end end)
-        UserInputService.InputEnded:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then sliding = false end end)
+        UserInputService.InputEnded:Connect(function(input) 
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then 
+                sliding = false 
+                local currentVal = string.match(info.Text, "%d+") or ""
+                parentLibrary:Notification(title .. " 调整为: " .. currentVal)
+            end 
+        end)
     end
 
     function pageMethods:AddDropdown(title: string, options: {string}, defaultIndex: number?, callback: (string) -> ())
@@ -396,6 +494,9 @@ function Library:CreateTab(tabName: string)
                 boxBtn.Text = optionName
                 boxBtn.TextColor3 = Color3.fromHex("#5C6BC0")
                 callback(optionName)
+                
+                parentLibrary:Notification("选择项目: " .. optionName)
+
                 isOpened = false
                 arrow.Text = "▼"
                 listScroll.Visible = false
@@ -439,6 +540,8 @@ function Library:CreateTab(tabName: string)
             clickBtn.Size = UDim2.new(1, -32, 0, 22)
             TweenService:Create(clickBtn, TWEEN_INFO_FAST, {Size = UDim2.new(1, -24, 0, 26)}):Play()
             callback()
+            
+            parentLibrary:Notification("执行完成: " .. text)
         end)
     end
 
