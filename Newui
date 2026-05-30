@@ -456,11 +456,9 @@ function Library:CreateTab(tabName: string)
 
             for opt, btnObj in pairs(optionButtons) do
                 if selectedItems[opt] then
-                    btnObj.Mark.Text = "✓"
-                    btnObj.Text = "      " .. opt
+                    btnObj.Text = "   " .. opt
                     btnObj.TextColor3 = Color3.fromHex("#5C6BC0")
                 else
-                    btnObj.Mark.Text = ""
                     btnObj.Text = "   " .. opt
                     btnObj.TextColor3 = Color3.fromHex("#555555")
                 end
@@ -478,17 +476,6 @@ function Library:CreateTab(tabName: string)
             optBtn.TextXAlignment = Enum.TextXAlignment.Left
             optBtn.LayoutOrder = i
             optBtn.ZIndex = 13
-
-            local markLbl = Instance.new("TextLabel", optBtn)
-            markLbl.Name = "Mark"
-            markLbl.Size = UDim2.fromOffset(20, 22)
-            markLbl.Position = UDim2.fromOffset(5, 0)
-            markLbl.BackgroundTransparency = 1
-            markLbl.TextColor3 = Color3.fromHex("#5C6BC0")
-            markLbl.TextSize = 12
-            markLbl.Font = Enum.Font.SourceSansBold
-            markLbl.TextXAlignment = Enum.TextXAlignment.Center
-            markLbl.ZIndex = 14
 
             optionButtons[optionName] = optBtn
 
