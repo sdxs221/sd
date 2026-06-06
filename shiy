@@ -159,7 +159,9 @@ function Library.CreateWindow(titleText: string)
     
     local localPlayer = Players.LocalPlayer
     if localPlayer then
-        AvatarImage.Image = Players:GetUserThumbnailAsync(localPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+        pcall(function()
+            AvatarImage.Image = Players:GetUserThumbnailAsync(localPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size48x48)
+        end)
     end
 
     local NameLabel = Instance.new("TextLabel", ProfileFrame)
