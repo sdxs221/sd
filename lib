@@ -37,76 +37,6 @@ local function MakeDraggable(gui: Frame)
     end)
 end
 
-local function StartSnowEffect(panel: Frame)
-    local maxSnow = 30
-    local snowList = {}
-    local random = Random.new()
-
-    RunService.RenderStepped:Connect(function(deltaTime)
-        if not panel.Visible or panel.Size.X.Offset < 300 then
-            for _, flake in ipairs(snowList) do
-                flake:Destroy()
-            end
-            table.clear(snowList)
-            return
-        end
-
-        if #snowList < maxSnow and random:NextNumber() < 0.1 then
-            local flake = Instance.new("Frame")
-            flake.BackgroundColor3 = Color3.new(1, 1, 1)
-            flake.BackgroundTransparency = random:NextNumber(0.1, 0.5)
-            
-            local size = random:NextInteger(3, 6)
-            flake.Size = UDim2.fromOffset(size, size)
-            
-            local corner = Instance.new("UICorner")
-            corner.CornerRadius = UDim.new(0.5, 0)
-            corner.Parent = flake
-            
-            flake.Position = UDim2.new(random:NextNumber(0, 1), 0, 0, -10)
-            flake.Parent = panel
-            
-            local speed = random:NextNumber(40, 80)
-            local drift = random:NextNumber(-15, 15)
-            
-            table.insert(snowList, {
-                obj = flake,
-                speed = speed,
-                drift = drift
-            })
-        end
-
-        for i = #snowList, 1, -1 do
-            local data = snowList[i]
-            local flake = data.obj
-            if flake and flake.Parent then
-                local currentPos = flake.Position
-                local panelHeight = panel.AbsoluteSize.Y
-                local currentYOffset = currentPos.Y.Offset
-
-                if currentYOffset >= panelHeight - 20 then
-                    local progress = (currentYOffset - (panelHeight - 20)) / 20
-                    flake.BackgroundTransparency = math.clamp(progress, 0, 1)
-                end
-
-                if currentYOffset >= panelHeight then
-                    flake:Destroy()
-                    table.remove(snowList, i)
-                else
-                    flake.Position = UDim2.new(
-                        currentPos.X.Scale,
-                        currentPos.X.Offset + data.drift * deltaTime,
-                        currentPos.Y.Scale,
-                        currentYOffset + data.speed * deltaTime
-                    )
-                end
-            else
-                table.remove(snowList, i)
-            end
-        end
-    end)
-end
-
 function Library.CreateWindow(titleText: string)
     local self = setmetatable({}, Library)
     
@@ -122,24 +52,29 @@ function Library.CreateWindow(titleText: string)
     self.FloatBall = Instance.new("ImageButton", self.ScreenGui)
     self.FloatBall.Size = UDim2.fromOffset(60, 60)
     self.FloatBall.Position = UDim2.new(0.1, 0, 0.4, 0)
-    self.FloatBall.BackgroundColor3 = Color3.fromHex("#5C6BC0")
+    self.FloatBall.BackgroundColor3 = Color3.fromHex("#1F1F1F")
     self.FloatBall.Image = "rbxassetid://100987077383366"
     Instance.new("UICorner", self.FloatBall).CornerRadius = UDim.new(0.5, 0)
+    local BallStroke = Instance.new("UIStroke", self.FloatBall)
+    BallStroke.Color = Color3.fromHex("#2C2C2C")
     MakeDraggable(self.FloatBall)
 
     self.MainPanel = Instance.new("Frame", self.ScreenGui)
     self.MainPanel.Size = UDim2.fromOffset(380, 260)
     self.MainPanel.Position = UDim2.fromScale(0.5, 0.5)
     self.MainPanel.AnchorPoint = Vector2.new(0.5, 0.5)
-    self.MainPanel.BackgroundColor3 = Color3.fromHex("#1A1A1A")
+    self.MainPanel.BackgroundColor3 = Color3.fromHex("#121212")
     self.MainPanel.Visible = false
     self.MainPanel.ClipsDescendants = true
     Instance.new("UICorner", self.MainPanel).CornerRadius = UDim.new(0, 16)
     local PanelStroke = Instance.new("UIStroke", self.MainPanel)
-    PanelStroke.Color = Color3.fromHex("#2D2D2D")
+    PanelStroke.Color = Color3.fromHex("#2C2C2C")
     MakeDraggable(self.MainPanel)
 
-    StartSnowEffect(self.MainPanel)
+    local SnowContainer = Instance.new("Frame", self.MainPanel)
+    SnowContainer.Size = UDim2.fromScale(1, 1)
+    SnowContainer.BackgroundTransparency = 1
+    SnowContainer.ZIndex = 1
 
     local TitleLabel = Instance.new("TextLabel", self.MainPanel)
     TitleLabel.Text = titleText
@@ -179,17 +114,17 @@ function Library.CreateWindow(titleText: string)
         local UserCard = Instance.new("Frame", self.MainPanel)
         UserCard.Size = UDim2.new(0, 95, 0, 40)
         UserCard.Position = UDim2.new(0, 12, 1, -50)
-        UserCard.BackgroundColor3 = Color3.fromHex("#262626")
+        UserCard.BackgroundColor3 = Color3.fromHex("#1F1F1F")
         UserCard.ZIndex = 5
         Instance.new("UICorner", UserCard).CornerRadius = UDim.new(0.5, 0)
         local UserStroke = Instance.new("UIStroke", UserCard)
-        UserStroke.Color = Color3.fromHex("#333333")
+        UserStroke.Color = Color3.fromHex("#2C2C2C")
 
         local AvatarImg = Instance.new("ImageLabel", UserCard)
         AvatarImg.Size = UDim2.fromOffset(28, 28)
         AvatarImg.Position = UDim2.fromOffset(6, 6)
-        AvatarImg.BackgroundColor3 = Color3.fromHex("#333333")
-        AvatarImg.ZIndex = 6
+        AvatarImg.BackgroundColor3 = Color3.fromHex("#2C2C2C")
+        AvatarImg.ZIndex = 5
         Instance.new("UICorner", AvatarImg).CornerRadius = UDim.new(0.5, 0)
         
         task.spawn(function()
@@ -204,13 +139,13 @@ function Library.CreateWindow(titleText: string)
         NameLbl.Text = localPlayer.DisplayName or localPlayer.Name
         NameLbl.Size = UDim2.new(1, -44, 1, 0)
         NameLbl.Position = UDim2.fromOffset(38, 0)
-        NameLbl.TextColor3 = Color3.fromHex("#CCCCCC")
+        NameLbl.TextColor3 = Color3.fromHex("#E0E0E0")
         NameLbl.TextSize = 10
         NameLbl.Font = Enum.Font.SourceSansBold
         NameLbl.TextXAlignment = Enum.TextXAlignment.Left
         NameLbl.BackgroundTransparency = 1
         NameLbl.TextTruncate = Enum.TextTruncate.AtEnd
-        NameLbl.ZIndex = 6
+        NameLbl.ZIndex = 5
     end
 
     local function ToggleMenu()
@@ -240,11 +175,59 @@ function Library.CreateWindow(titleText: string)
     CloseBtn.Size = UDim2.fromOffset(30, 30)
     CloseBtn.Position = UDim2.new(1, -35, 0, 8)
     CloseBtn.BackgroundTransparency = 1
-    CloseBtn.TextColor3 = Color3.fromHex("#888888")
+    CloseBtn.TextColor3 = Color3.fromHex("#757575")
     CloseBtn.TextSize = 12
     CloseBtn.Font = Enum.Font.SourceSansBold
     CloseBtn.ZIndex = 5
     CloseBtn.Activated:Connect(ToggleMenu)
+
+    local flakes = {}
+    local rng = Random.new()
+    local lastSpawn = 0
+
+    RunService.RenderStepped:Connect(function(dt)
+        if not self.MainPanel.Visible then return end
+        
+        lastSpawn = lastSpawn + dt
+        if lastSpawn >= 0.1 and #flakes < 40 then
+            lastSpawn = 0
+            local flake = Instance.new("Frame", SnowContainer)
+            local size = rng:NextInteger(3, 6)
+            flake.Size = UDim2.fromOffset(size, size)
+            flake.Position = UDim2.new(rng:NextNumber(0, 1), 0, -0.05, 0)
+            flake.BackgroundColor3 = Color3.new(1, 1, 1)
+            flake.BackgroundTransparency = rng:NextNumber(0.1, 0.5)
+            flake.ZIndex = 2
+            Instance.new("UICorner", flake).CornerRadius = UDim.new(0.5, 0)
+            
+            table.insert(flakes, {
+                obj = flake,
+                speed = rng:NextNumber(40, 80),
+                drift = rng:NextNumber(-20, 20),
+                wobbleSpeed = rng:NextNumber(2, 5),
+                wobbleTime = rng:NextNumber(0, 10)
+            })
+        end
+
+        for i = #flakes, 1, -1 do
+            local f = flakes[i]
+            if f.obj and f.obj.Parent then
+                f.wobbleTime = f.wobbleTime + dt
+                local currentPos = f.obj.Position
+                local newYOffset = f.obj.Position.Y.Offset + (f.speed * dt)
+                local newXScale = currentPos.X.Scale + ((f.drift + math.sin(f.wobbleTime * f.wobbleSpeed) * 15) * dt / 380)
+                
+                f.obj.Position = UDim2.new(math.clamp(newXScale, 0, 1), currentPos.X.Offset, 0, newYOffset)
+                
+                if newYOffset >= 260 then
+                    f.obj:Destroy()
+                    table.remove(flakes, i)
+                end
+            else
+                table.remove(flakes, i)
+            end
+        end
+    end)
 
     local success, _ = pcall(function() self.ScreenGui.Parent = game:GetService("CoreGui") end)
     if not success then self.ScreenGui.Parent = localPlayer:WaitForChild("PlayerGui") end
@@ -260,13 +243,13 @@ function Library:CreateTab(tabName: string)
     scroll.Position = UDim2.fromScale(0, 0)
     scroll.BackgroundTransparency = 1
     scroll.ScrollBarThickness = 2 
-    scroll.ScrollBarImageColor3 = Color3.fromHex("#555555")
+    scroll.ScrollBarImageColor3 = Color3.fromHex("#424242")
     scroll.ScrollingDirection = Enum.ScrollingDirection.Y
     scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
     scroll.Visible = (tabIndex == 1)
     scroll.Parent = self.ContentFrame
     scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    scroll.ZIndex = 5
+    scroll.ZIndex = 6
 
     local listLayout = Instance.new("UIListLayout")
     listLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -282,9 +265,11 @@ function Library:CreateTab(tabName: string)
 
     local tabCard = Instance.new("Frame", self.LeftTabScroll)
     tabCard.Size = UDim2.new(1, -5, 0, 32)
-    tabCard.BackgroundColor3 = (tabIndex == 1) and Color3.fromHex("#5C6BC0") or Color3.fromHex("#262626")
+    tabCard.BackgroundColor3 = (tabIndex == 1) and Color3.fromHex("#5C6BC0") or Color3.fromHex("#1F1F1F")
     tabCard.ZIndex = 5
     Instance.new("UICorner", tabCard).CornerRadius = UDim.new(0.5, 0)
+    local tabStroke = Instance.new("UIStroke", tabCard)
+    tabStroke.Color = Color3.fromHex("#2C2C2C")
 
     local btn = Instance.new("TextButton", tabCard)
     btn.Text = tabName
@@ -308,7 +293,7 @@ function Library:CreateTab(tabName: string)
         for _, child in ipairs(self.LeftTabScroll:GetChildren()) do
             if child:IsA("Frame") then
                 local isSelf = (child == tabCard)
-                TweenService:Create(child, TWEEN_INFO_FAST, {BackgroundColor3 = isSelf and Color3.fromHex("#5C6BC0") or Color3.fromHex("#262626")}):Play()
+                TweenService:Create(child, TWEEN_INFO_FAST, {BackgroundColor3 = isSelf and Color3.fromHex("#5C6BC0") or Color3.fromHex("#1F1F1F")}):Play()
                 local textBtn = child:FindFirstChildOfClass("TextButton")
                 if textBtn then
                     TweenService:Create(textBtn, TWEEN_INFO_FAST, {TextColor3 = isSelf and Color3.fromHex("#FFFFFF") or Color3.fromHex("#A0A0A0")}):Play()
@@ -327,10 +312,10 @@ function Library:CreateTab(tabName: string)
         local isOn = false
         local card = Instance.new("Frame", scroll)
         card.Size = UDim2.new(1, 0, 0, 40) 
-        card.BackgroundColor3 = Color3.fromHex("#262626")
-        card.ZIndex = 5
+        card.BackgroundColor3 = Color3.fromHex("#1A1A1A")
+        card.ZIndex = 6
         Instance.new("UICorner", card).CornerRadius = UDim.new(0.5, 0)
-        Instance.new("UIStroke", card).Color = Color3.fromHex("#333333")
+        Instance.new("UIStroke", card).Color = Color3.fromHex("#2C2C2C")
         
         local lbl = Instance.new("TextLabel", card)
         lbl.Text = text
@@ -341,14 +326,14 @@ function Library:CreateTab(tabName: string)
         lbl.Font = Enum.Font.SourceSansBold
         lbl.TextXAlignment = Enum.TextXAlignment.Left
         lbl.BackgroundTransparency = 1
-        lbl.ZIndex = 6
+        lbl.ZIndex = 7
 
         local switchBtn = Instance.new("ImageButton", card)
         switchBtn.Size = UDim2.fromOffset(36, 20)
         switchBtn.AnchorPoint = Vector2.new(1, 0.5)
         switchBtn.Position = UDim2.new(1, -20, 0.5, 0)
-        switchBtn.BackgroundColor3 = Color3.fromHex("#444444")
-        switchBtn.ZIndex = 6
+        switchBtn.BackgroundColor3 = Color3.fromHex("#424242")
+        switchBtn.ZIndex = 7
         Instance.new("UICorner", switchBtn).CornerRadius = UDim.new(0.5, 0)
 
         local dot = Instance.new("Frame", switchBtn)
@@ -356,14 +341,14 @@ function Library:CreateTab(tabName: string)
         dot.Position = UDim2.new(0, 3, 0.5, 0)
         dot.AnchorPoint = Vector2.new(0, 0.5)
         dot.BackgroundColor3 = Color3.new(1, 1, 1)
-        dot.ZIndex = 7
+        dot.ZIndex = 8
         Instance.new("UICorner", dot).CornerRadius = UDim.new(0.5, 0)
 
         switchBtn.Activated:Connect(function()
             isOn = not isOn
             callback(isOn)
 
-            TweenService:Create(switchBtn, TWEEN_INFO_FAST, {BackgroundColor3 = isOn and Color3.fromHex("#5C6BC0") or Color3.fromHex("#444444")}):Play()
+            TweenService:Create(switchBtn, TWEEN_INFO_FAST, {BackgroundColor3 = isOn and Color3.fromHex("#5C6BC0") or Color3.fromHex("#424242")}):Play()
             TweenService:Create(dot, TWEEN_INFO_FAST, {Position = isOn and UDim2.new(1, -17, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)}):Play()
         end)
     end
@@ -371,10 +356,10 @@ function Library:CreateTab(tabName: string)
     function pageMethods:AddInput(title: string, placeholder: string, callback: (string) -> ())
         local card = Instance.new("Frame", scroll)
         card.Size = UDim2.new(1, 0, 0, 40)
-        card.BackgroundColor3 = Color3.fromHex("#262626")
-        card.ZIndex = 5
+        card.BackgroundColor3 = Color3.fromHex("#1A1A1A")
+        card.ZIndex = 6
         Instance.new("UICorner", card).CornerRadius = UDim.new(0.5, 0)
-        Instance.new("UIStroke", card).Color = Color3.fromHex("#333333")
+        Instance.new("UIStroke", card).Color = Color3.fromHex("#2C2C2C")
 
         local lbl = Instance.new("TextLabel", card)
         lbl.Text = title
@@ -385,21 +370,21 @@ function Library:CreateTab(tabName: string)
         lbl.Font = Enum.Font.SourceSansBold
         lbl.TextXAlignment = Enum.TextXAlignment.Left
         lbl.BackgroundTransparency = 1
-        lbl.ZIndex = 6
+        lbl.ZIndex = 7
 
         local box = Instance.new("TextBox", card)
         box.Size = UDim2.new(0.5, 0, 0, 24)
         box.AnchorPoint = Vector2.new(1, 0.5)
         box.Position = UDim2.new(1, -20, 0.5, 0)
-        box.BackgroundColor3 = Color3.fromHex("#1E1E1E")
+        box.BackgroundColor3 = Color3.fromHex("#262626")
         box.PlaceholderText = placeholder
-        box.PlaceholderColor3 = Color3.fromHex("#666666")
         box.TextColor3 = Color3.fromHex("#FFFFFF")
+        box.PlaceholderColor3 = Color3.fromHex("#757575")
         box.TextSize = 11
         box.Text = ""
         box.Font = Enum.Font.SourceSansBold
         box.TextTruncate = Enum.TextTruncate.AtEnd
-        box.ZIndex = 6
+        box.ZIndex = 7
         Instance.new("UICorner", box).CornerRadius = UDim.new(0.5, 0)
         local boxStroke = Instance.new("UIStroke", box)
         boxStroke.Color = Color3.fromHex("#3A3A3A")
@@ -412,10 +397,10 @@ function Library:CreateTab(tabName: string)
     function pageMethods:AddSlider(title: string, minV: number, maxV: number, defV: number, callback: (number) -> ())
         local card = Instance.new("Frame", scroll)
         card.Size = UDim2.new(1, 0, 0, 40)
-        card.BackgroundColor3 = Color3.fromHex("#262626")
-        card.ZIndex = 5
+        card.BackgroundColor3 = Color3.fromHex("#1A1A1A")
+        card.ZIndex = 6
         Instance.new("UICorner", card).CornerRadius = UDim.new(0.5, 0)
-        Instance.new("UIStroke", card).Color = Color3.fromHex("#333333")
+        Instance.new("UIStroke", card).Color = Color3.fromHex("#2C2C2C")
 
         local info = Instance.new("TextLabel", card)
         info.Text = title .. ": " .. defV
@@ -426,15 +411,15 @@ function Library:CreateTab(tabName: string)
         info.Font = Enum.Font.SourceSansBold
         info.TextXAlignment = Enum.TextXAlignment.Left
         info.BackgroundTransparency = 1
-        info.ZIndex = 6
+        info.ZIndex = 7
 
         local track = Instance.new("TextButton", card)
         track.Text = ""
         track.Size = UDim2.new(0.4, 0, 0, 6)
         track.AnchorPoint = Vector2.new(1, 0.5)
         track.Position = UDim2.new(1, -24, 0.5, 0)
-        track.BackgroundColor3 = Color3.fromHex("#3A3A3A")
-        track.ZIndex = 6
+        track.BackgroundColor3 = Color3.fromHex("#2C2C2C")
+        track.ZIndex = 7
         Instance.new("UICorner", track).CornerRadius = UDim.new(0.5, 0)
 
         local sliderBtn = Instance.new("Frame", track)
@@ -442,7 +427,7 @@ function Library:CreateTab(tabName: string)
         sliderBtn.AnchorPoint = Vector2.new(0.5, 0.5)
         sliderBtn.Position = UDim2.fromScale((defV - minV)/(maxV - minV), 0.5)
         sliderBtn.BackgroundColor3 = Color3.new(1, 1, 1)
-        sliderBtn.ZIndex = 7
+        sliderBtn.ZIndex = 8
         Instance.new("UICorner", sliderBtn).CornerRadius = UDim.new(0.5, 0)
         local bstroke = Instance.new("UIStroke", sliderBtn)
         bstroke.Color = Color3.fromHex("#5C6BC0")
@@ -478,13 +463,13 @@ function Library:CreateTab(tabName: string)
 
         local card = Instance.new("Frame", scroll)
         card.Size = UDim2.new(1, 0, 0, 40)
-        card.BackgroundColor3 = Color3.fromHex("#262626")
+        card.BackgroundColor3 = Color3.fromHex("#1A1A1A")
         card.ClipsDescendants = true
         card.ZIndex = 10
 
         Instance.new("UICorner", card).CornerRadius = UDim.new(0, 20)
         local cardStroke = Instance.new("UIStroke", card)
-        cardStroke.Color = Color3.fromHex("#333333")
+        cardStroke.Color = Color3.fromHex("#2C2C2C")
 
         local nameLabel = Instance.new("TextLabel", card)
         nameLabel.Text = title
@@ -501,7 +486,7 @@ function Library:CreateTab(tabName: string)
         boxBtn.Size = UDim2.new(0.45, 0, 0, 24)
         boxBtn.AnchorPoint = Vector2.new(1, 0)
         boxBtn.Position = UDim2.new(1, -20, 0, 8)
-        boxBtn.BackgroundColor3 = Color3.fromHex("#1E1E1E")
+        boxBtn.BackgroundColor3 = Color3.fromHex("#262626")
         boxBtn.TextSize = 11
         boxBtn.Font = Enum.Font.SourceSansBold
         boxBtn.TextTruncate = Enum.TextTruncate.AtEnd
@@ -514,7 +499,7 @@ function Library:CreateTab(tabName: string)
         arrow.Text = "▼"
         arrow.Size = UDim2.fromScale(0, 1)
         arrow.Position = UDim2.new(1, -16, 0, 0)
-        arrow.TextColor3 = Color3.fromHex("#888888")
+        arrow.TextColor3 = Color3.fromHex("#757575")
         arrow.TextSize = 9
         arrow.BackgroundTransparency = 1
         arrow.ZIndex = 12
@@ -525,7 +510,7 @@ function Library:CreateTab(tabName: string)
         listScroll.BackgroundTransparency = 1
         listScroll.CanvasSize = UDim2.fromOffset(0, #options * 24)
         listScroll.ScrollBarThickness = 2
-        listScroll.ScrollBarImageColor3 = Color3.fromHex("#555555")
+        listScroll.ScrollBarImageColor3 = Color3.fromHex("#424242")
         listScroll.Visible = false
         listScroll.ZIndex = 12
 
@@ -547,19 +532,19 @@ function Library:CreateTab(tabName: string)
             
             if #displayList > 0 then
                 boxBtn.Text = table.concat(displayList, ", ")
-                boxBtn.TextColor3 = Color3.fromHex("#8F9FEE")
+                boxBtn.TextColor3 = Color3.fromHex("#5C6BC0")
             else
                 boxBtn.Text = "请选择..."
-                boxBtn.TextColor3 = Color3.fromHex("#666666")
+                boxBtn.TextColor3 = Color3.fromHex("#757575")
             end
 
             for opt, btnObj in pairs(optionButtons) do
                 if selectedItems[opt] then
                     btnObj.Text = "   " .. opt
-                    btnObj.TextColor3 = Color3.fromHex("#8F9FEE")
+                    btnObj.TextColor3 = Color3.fromHex("#5C6BC0")
                 else
                     btnObj.Text = "   " .. opt
-                    btnObj.TextColor3 = Color3.fromHex("#BBBBBB")
+                    btnObj.TextColor3 = Color3.fromHex("#A0A0A0")
                 end
             end
             
@@ -607,10 +592,10 @@ function Library:CreateTab(tabName: string)
     function pageMethods:AddButton(text: string, callback: () -> ())
         local card = Instance.new("Frame", scroll)
         card.Size = UDim2.new(1, 0, 0, 40)
-        card.BackgroundColor3 = Color3.fromHex("#262626")
-        card.ZIndex = 5
+        card.BackgroundColor3 = Color3.fromHex("#1A1A1A")
+        card.ZIndex = 6
         Instance.new("UICorner", card).CornerRadius = UDim.new(0.5, 0)
-        Instance.new("UIStroke", card).Color = Color3.fromHex("#333333")
+        Instance.new("UIStroke", card).Color = Color3.fromHex("#2C2C2C")
 
         local clickBtn = Instance.new("TextButton", card)
         clickBtn.Text = text
@@ -621,7 +606,7 @@ function Library:CreateTab(tabName: string)
         clickBtn.TextColor3 = Color3.new(1, 1, 1)
         clickBtn.TextSize = 12
         clickBtn.Font = Enum.Font.SourceSansBold
-        clickBtn.ZIndex = 6
+        clickBtn.ZIndex = 7
         Instance.new("UICorner", clickBtn).CornerRadius = UDim.new(0.5, 0)
 
         clickBtn.Activated:Connect(function()
