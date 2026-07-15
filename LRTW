@@ -375,15 +375,8 @@ function Library:CreateWindow(config)
 		return page
 	end
 
-	local ModalOverlay = Instance.new("TextButton")
-	ModalOverlay.Name = "ModalOverlay"
-	ModalOverlay.Size = UDim2.new(1, 0, 1, 0)
-	ModalOverlay.BackgroundTransparency = 1
-	ModalOverlay.Text = ""
-	ModalOverlay.ZIndex = 14000
-	ModalOverlay.Visible = false
-	ModalOverlay.Parent = ScreenGui
-
+	local ActiveDropdownList = nil
+	local CloseActiveDropdownFunc = nil
 	local ActivePickerButton = nil
 	local ActiveColorCallback = nil
 
@@ -608,12 +601,14 @@ function Library:CreateWindow(config)
 		end)
 		ActivePickerButton = nil
 		ActiveColorCallback = nil
-		ModalOverlay.Visible = false
 	end
 
 	ConfirmBtn.MouseButton1Click:Connect(closePicker)
 
 	local function openPicker()
+		if ActiveDropdownList and CloseActiveDropdownFunc then
+			CloseActiveDropdownFunc()
+		end
 		GlobalPickerPanel.Visible = true
 		GlobalPickerPanel.Size = UDim2.new(0, 0, 0, 0)
 		GlobalPickerPanel.BackgroundTransparency = 1
@@ -622,15 +617,26 @@ function Library:CreateWindow(config)
 			BackgroundTransparency = 0.25
 		})
 		pickerTween:Play()
-		ModalOverlay.Visible = true
 	end
 
-	ModalOverlay.MouseButton1Click:Connect(function()
-		if ActiveDropdownList and CloseActiveDropdownFunc then
-			CloseActiveDropdownFunc()
+	local function onInputBegan(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			local pos = input.Position
+			if ActiveDropdownList and CloseActiveDropdownFunc and ActiveDropdownList.Parent then
+				if not (ActiveDropdownList.AbsolutePosition.X <= pos.X and pos.X <= ActiveDropdownList.AbsolutePosition.X + ActiveDropdownList.AbsoluteSize.X
+					and ActiveDropdownList.AbsolutePosition.Y <= pos.Y and pos.Y <= ActiveDropdownList.AbsolutePosition.Y + ActiveDropdownList.AbsoluteSize.Y) then
+					CloseActiveDropdownFunc()
+				end
+			end
+			if GlobalPickerPanel.Visible then
+				if not (GlobalPickerPanel.AbsolutePosition.X <= pos.X and pos.X <= GlobalPickerPanel.AbsolutePosition.X + GlobalPickerPanel.AbsoluteSize.X
+					and GlobalPickerPanel.AbsolutePosition.Y <= pos.Y and pos.Y <= GlobalPickerPanel.AbsolutePosition.Y + GlobalPickerPanel.AbsoluteSize.Y) then
+					closePicker()
+				end
+			end
 		end
-		closePicker()
-	end)
+	end
+	UserInputService.InputBegan:Connect(onInputBegan)
 
 	local function createAdaptiveRow(parentPage)
 		local row = Instance.new("Frame")
@@ -771,9 +777,6 @@ function Library:CreateWindow(config)
 
 		return row
 	end
-
-	local ActiveDropdownList = nil
-	local CloseActiveDropdownFunc = nil
 
 	local function createMultiDropdown(parentPage, title, optionsList, defaultSelected, callback)
 		local row, tLabel = createAdaptiveRow(parentPage)
@@ -1032,7 +1035,6 @@ function Library:CreateWindow(config)
 			if not isOpen then return end
 			isOpen = false
 			arrowLabel.Text = "▼"
-			ModalOverlay.Visible = false
 			local dropdownTween = TweenService:Create(dropdownList, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
 				Size = UDim2.new(0, 120, 0, 0)
 			})
@@ -1063,7 +1065,6 @@ function Library:CreateWindow(config)
 				dropdownList.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y + 2)
 				dropdownList.Visible = true
 				arrowLabel.Text = "▲"
-				ModalOverlay.Visible = true
 				local contentHeight = math.min(#optionsList * 28 + 6, 120)
 				TweenService:Create(dropdownList, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
 					Size = UDim2.new(0, 120, 0, contentHeight)
@@ -1544,7 +1545,6 @@ function Library:CreateWindow(config)
 			if ActiveDropdownList and CloseActiveDropdownFunc then
 				CloseActiveDropdownFunc()
 			end
-			ModalOverlay.Visible = false
 			TweenService:Create(DynamicIsland, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {
 				Size = UDim2.new(0, 220, 0, 26)
 			}):Play()
