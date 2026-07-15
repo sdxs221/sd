@@ -8,35 +8,39 @@ do
     screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     screenGui.Parent = playerGui
 
-    local activeNotifications = {}
-    local baseBottomOffset = 10
-    local spacing = 8
-    local slideInDuration = 0.3
-    local slideOutDuration = 0.2
+    local active = {}
+    local BOTTOM = 10
+    local GAP = 8
+    local X_HIDE = 30
+    local X_SHOW = -265
 
-    local function rearrangeAll()
-        local totalHeight = baseBottomOffset
-        for i = #activeNotifications, 1, -1 do
-            local notif = activeNotifications[i]
-            if notif and notif.frame and notif.frame.Parent then
-                local targetY = -totalHeight - notif.frame.Size.Y.Offset
-                notif.targetY = targetY
-                notif.isAnimating = true
+    local function calcTargets()
+        local total = BOTTOM
+        for i = #active, 1, -1 do
+            local n = active[i]
+            n.targetY = -total - n.frame.Size.Y.Offset
+            total = total + n.frame.Size.Y.Offset + GAP
+        end
+    end
+
+    local function moveOld()
+        for _, n in ipairs(active) do
+            if n.frame.Parent and n.targetY ~= n.frame.Position.Y.Offset then
+                n.movingY = true
+                local startY = n.frame.Position.Y.Offset
+                local endY = n.targetY
+                local t0 = tick()
                 task.spawn(function()
-                    local startTime = tick()
-                    local startY = notif.frame.Position.Y.Offset
-                    while notif.isAnimating and tick() - startTime < 0.25 do
-                        local t = math.min((tick() - startTime) / 0.25, 1)
-                        local y = startY + (targetY - startY) * t
-                        notif.frame.Position = UDim2.new(1, -265, 1, y)
+                    while n.movingY and tick() - t0 < 0.25 do
+                        local t = math.min((tick() - t0) / 0.25, 1)
+                        n.frame.Position = UDim2.new(1, X_SHOW, 1, startY + (endY - startY) * t)
                         task.wait()
                     end
-                    if notif.frame and notif.frame.Parent then
-                        notif.frame.Position = UDim2.new(1, -265, 1, targetY)
+                    if n.frame.Parent then
+                        n.frame.Position = UDim2.new(1, X_SHOW, 1, endY)
                     end
-                    notif.isAnimating = false
+                    n.movingY = false
                 end)
-                totalHeight = totalHeight + notif.frame.Size.Y.Offset + spacing
             end
         end
     end
@@ -46,7 +50,6 @@ do
 
         local frame = Instance.new("Frame")
         frame.Size = UDim2.new(0, 250, 0, 60)
-        frame.Position = UDim2.new(1, 30, 1, -75)
         frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
         frame.BackgroundTransparency = 0.25
         frame.BorderSizePixel = 0
@@ -96,56 +99,60 @@ do
         textLabel.TextWrapped = true
         textLabel.Parent = frame
 
-        local notifData = {
+        local notif = {
             frame = frame,
             targetY = 0,
-            isAnimating = false,
-            dismissed = false
+            dismissed = false,
+            movingY = false
         }
 
-        local function dismiss()
-            if notifData.dismissed then return end
-            notifData.dismissed = true
-            notifData.isAnimating = false
+        table.insert(active, notif)
+        calcTargets()
 
-            for i, v in ipairs(activeNotifications) do
-                if v == notifData then
-                    table.remove(activeNotifications, i)
+        frame.Position = UDim2.new(1, X_HIDE, 1, notif.targetY)
+
+        local function dismiss()
+            if notif.dismissed then return end
+            notif.dismissed = true
+            notif.movingY = false
+
+            for i, v in ipairs(active) do
+                if v == notif then
+                    table.remove(active, i)
                     break
                 end
             end
 
-            local startTime = tick()
             local startX = frame.Position.X.Offset
             local startY = frame.Position.Y.Offset
+            local t0 = tick()
             task.spawn(function()
-                while tick() - startTime < slideOutDuration do
-                    local t = math.min((tick() - startTime) / slideOutDuration, 1)
+                while tick() - t0 < 0.2 do
+                    local t = math.min((tick() - t0) / 0.2, 1)
                     frame.Position = UDim2.new(1, startX + t * 295, 1, startY)
                     frame.BackgroundTransparency = 0.25 + t * 0.75
                     task.wait()
                 end
                 frame:Destroy()
-                rearrangeAll()
+                calcTargets()
+                moveOld()
             end)
         end
 
         closeBtn.MouseButton1Click:Connect(dismiss)
         task.delay(duration, dismiss)
 
-        table.insert(activeNotifications, notifData)
+        moveOld()
 
-        rearrangeAll()
-
-        local startTime = tick()
+        local t0 = tick()
         task.spawn(function()
-            while not notifData.dismissed and tick() - startTime < slideInDuration do
-                local t = math.min((tick() - startTime) / slideInDuration, 1)
-                frame.Position = UDim2.new(1, 30 + (1 - t) * -295, 1, notifData.targetY)
+            while not notif.dismissed and tick() - t0 < 0.3 do
+                local t = math.min((tick() - t0) / 0.3, 1)
+                frame.Position = UDim2.new(1, X_HIDE + (1 - t) * -295, 1, notif.targetY)
                 task.wait()
             end
-            if not notifData.dismissed and frame.Parent then
-                frame.Position = UDim2.new(1, -265, 1, notifData.targetY)
+            if not notif.dismissed and frame.Parent then
+                frame.Position = UDim2.new(1, X_SHOW, 1, notif.targetY)
             end
         end)
     end
