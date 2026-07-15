@@ -140,7 +140,6 @@ function Library:CreateWindow(config)
 	config = config or {}
 	local windowTitle = config.Title or "LIQUID GLASS"
 	local imageUrl = config.ImageUrl or ""
-	local mainColor = config.AccentColor or Color3.fromRGB(255, 255, 255)
 	local finalImageAssetId = ""
 
 	if imageUrl ~= "" then
@@ -391,6 +390,7 @@ function Library:CreateWindow(config)
 	local GlobalPickerPanel = Instance.new("Frame")
 	GlobalPickerPanel.Name = "GlobalColorPickerPanel"
 	GlobalPickerPanel.Size = UDim2.new(0, 160, 0, 130)
+	GlobalPickerPanel.Position = UDim2.new(0, 200, 0, 200)
 	GlobalPickerPanel.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
 	GlobalPickerPanel.BackgroundTransparency = 0.25
 	GlobalPickerPanel.BorderSizePixel = 0
@@ -409,7 +409,7 @@ function Library:CreateWindow(config)
 	PickerStroke.Parent = GlobalPickerPanel
 
 	local PTitle = Instance.new("TextLabel")
-	PTitle.Size = UDim2.new(1, 0, 0, 22)
+	PTitle.Size = UDim2.new(1, -30, 0, 22)
 	PTitle.Position = UDim2.new(0, 0, 0, 4)
 	PTitle.BackgroundTransparency = 1
 	PTitle.Font = Enum.Font.SourceSansBold
@@ -418,6 +418,20 @@ function Library:CreateWindow(config)
 	PTitle.TextSize = 12
 	PTitle.ZIndex = 20001
 	PTitle.Parent = GlobalPickerPanel
+
+	local PCloseBtn = Instance.new("TextButton")
+	PCloseBtn.Size = UDim2.new(0, 20, 0, 20)
+	PCloseBtn.Position = UDim2.new(1, -24, 0, 4)
+	PCloseBtn.BackgroundTransparency = 1
+	PCloseBtn.Font = Enum.Font.SourceSansBold
+	PCloseBtn.Text = "×"
+	PCloseBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+	PCloseBtn.TextSize = 14
+	PCloseBtn.ZIndex = 20001
+	PCloseBtn.Parent = GlobalPickerPanel
+	PCloseBtn.MouseButton1Click:Connect(function()
+		closePicker()
+	end)
 
 	local HueSlider = Instance.new("TextButton")
 	HueSlider.Name = "HueSlider"
@@ -579,11 +593,43 @@ function Library:CreateWindow(config)
 		end
 	end)
 
-	ConfirmBtn.MouseButton1Click:Connect(function()
-		GlobalPickerPanel.Visible = false
-		ModalOverlay.Visible = false
+	local pickerTween
+	function closePicker()
+		if GlobalPickerPanel.Visible == false then return end
+		pickerTween = TweenService:Create(GlobalPickerPanel, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+			Size = UDim2.new(0, 0, 0, 0),
+			BackgroundTransparency = 1
+		})
+		pickerTween:Play()
+		pickerTween.Completed:Connect(function()
+			GlobalPickerPanel.Visible = false
+			GlobalPickerPanel.Size = UDim2.new(0, 160, 0, 130)
+			GlobalPickerPanel.BackgroundTransparency = 0.25
+		end)
 		ActivePickerButton = nil
 		ActiveColorCallback = nil
+		ModalOverlay.Visible = false
+	end
+
+	ConfirmBtn.MouseButton1Click:Connect(closePicker)
+
+	local function openPicker()
+		GlobalPickerPanel.Visible = true
+		GlobalPickerPanel.Size = UDim2.new(0, 0, 0, 0)
+		GlobalPickerPanel.BackgroundTransparency = 1
+		pickerTween = TweenService:Create(GlobalPickerPanel, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Size = UDim2.new(0, 160, 0, 130),
+			BackgroundTransparency = 0.25
+		})
+		pickerTween:Play()
+		ModalOverlay.Visible = true
+	end
+
+	ModalOverlay.MouseButton1Click:Connect(function()
+		if ActiveDropdownList and CloseActiveDropdownFunc then
+			CloseActiveDropdownFunc()
+		end
+		closePicker()
 	end)
 
 	local function createAdaptiveRow(parentPage)
@@ -1051,9 +1097,7 @@ function Library:CreateWindow(config)
 
 		colorButton.MouseButton1Click:Connect(function()
 			if ActivePickerButton == colorButton and GlobalPickerPanel.Visible then
-				GlobalPickerPanel.Visible = false
-				ModalOverlay.Visible = false
-				ActivePickerButton = nil
+				closePicker()
 				return
 			end
 			if ActiveDropdownList and CloseActiveDropdownFunc then
@@ -1073,21 +1117,9 @@ function Library:CreateWindow(config)
 				safeX = btnX - 168
 			end
 			GlobalPickerPanel.Position = UDim2.new(0, safeX, 0, btnY - 45)
-			GlobalPickerPanel.Visible = true
-			ModalOverlay.Visible = true
+			openPicker()
 		end)
 	end
-
-	ModalOverlay.MouseButton1Click:Connect(function()
-		if ActiveDropdownList and CloseActiveDropdownFunc then
-			CloseActiveDropdownFunc()
-		end
-		if GlobalPickerPanel.Visible then
-			GlobalPickerPanel.Visible = false
-			ActivePickerButton = nil
-		end
-		ModalOverlay.Visible = false
-	end)
 
 	local function createSlider(parentPage, title, minVal, maxVal, defaultVal, callback)
 		local row, tLabel = createAdaptiveRow(parentPage)
@@ -1507,7 +1539,7 @@ function Library:CreateWindow(config)
 				ImageTransparency = 0
 			}):Play()
 		else
-			GlobalPickerPanel.Visible = false
+			closePicker()
 			if ActiveDropdownList and CloseActiveDropdownFunc then
 				CloseActiveDropdownFunc()
 			end
