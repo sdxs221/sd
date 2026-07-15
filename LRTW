@@ -1029,8 +1029,10 @@ function Library:CreateWindow(config)
 		refreshPills()
 
 		local function closeThisDropdown()
+			if not isOpen then return end
 			isOpen = false
 			arrowLabel.Text = "▼"
+			ModalOverlay.Visible = false
 			local dropdownTween = TweenService:Create(dropdownList, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
 				Size = UDim2.new(0, 120, 0, 0)
 			})
@@ -1041,7 +1043,6 @@ function Library:CreateWindow(config)
 					dropdownList.Visible = false
 					if ActiveDropdownList == dropdownList then
 						ActiveDropdownList = nil
-						ModalOverlay.Visible = false
 					end
 				end
 			end)
