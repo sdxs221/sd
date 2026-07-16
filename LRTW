@@ -170,6 +170,10 @@ function Library:CreateWindow(config)
 	local windowTitle = config.Title or "LIQUID GLASS"
 	local imageUrl = config.ImageUrl or ""
 	local finalImageAssetId = getOrDownloadImage(imageUrl)
+	local floatIconId = config.FloatIcon or ""
+	if floatIconId ~= "" then
+		floatIconId = getOrDownloadImage(floatIconId)
+	end
 
 	local ScreenGui = Instance.new("ScreenGui")
 	ScreenGui.Name = "LiquidGlassUI_" .. HttpService:GenerateGUID(false)
@@ -229,14 +233,20 @@ function Library:CreateWindow(config)
 	local FloatButton = Instance.new("ImageButton")
 	FloatButton.Size = UDim2.new(0, 45, 0, 45)
 	FloatButton.Position = UDim2.new(0, 15, 0.5, -22)
-	FloatButton.BackgroundTransparency = 1
-	FloatButton.Image = "rbxassetid://82941434797457"
-	FloatButton.ImageColor3 = Color3.fromRGB(255, 255, 255)
+	FloatButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	FloatButton.BackgroundTransparency = 0
+	FloatButton.BorderSizePixel = 0
 	FloatButton.ZIndex = 20
 	FloatButton.Parent = ScreenGui
 	local FloatCorner = Instance.new("UICorner")
 	FloatCorner.CornerRadius = UDim.new(1, 0)
 	FloatCorner.Parent = FloatButton
+
+	if floatIconId ~= "" then
+		FloatButton.Image = floatIconId
+	else
+		FloatButton.Image = ""
+	end
 
 	local MainPanel = Instance.new("Frame")
 	MainPanel.Name = "MainPanel"
@@ -1245,6 +1255,7 @@ function Library:CreateWindow(config)
 		sliderBar.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				isDragging = true
+				parentPage.ScrollingEnabled = false
 				updateSlider(input)
 			end
 		end)
@@ -1258,6 +1269,7 @@ function Library:CreateWindow(config)
 		UserInputService.InputEnded:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				isDragging = false
+				parentPage.ScrollingEnabled = true
 			end
 		end)
 	end
