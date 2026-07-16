@@ -317,35 +317,40 @@ function Library:CreateWindow(config)
 	TopBar.ZIndex = 10
 	TopBar.Parent = CanvasGroup
 
+	local TitleBarLabel = Instance.new("TextLabel")
+	TitleBarLabel.Name = "TitleBarLabel"
+	TitleBarLabel.Size = UDim2.new(1, -70, 1, 0)
+	TitleBarLabel.Position = UDim2.new(0, 8, 0, 0)
+	TitleBarLabel.BackgroundTransparency = 1
+	TitleBarLabel.Font = Enum.Font.SourceSansBold
+	TitleBarLabel.Text = windowTitle
+	TitleBarLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TitleBarLabel.TextSize = 13
+	TitleBarLabel.TextXAlignment = Enum.TextXAlignment.Left
+	TitleBarLabel.Active = true
+	TitleBarLabel.Parent = TopBar
+
 	local MinBtn = Instance.new("TextButton")
-	MinBtn.Size = UDim2.new(0, 24, 0, 24)
-	MinBtn.Position = UDim2.new(1, -52, 0, 0)
-	MinBtn.BackgroundTransparency = 0.9
-	MinBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	MinBtn.Size = UDim2.new(0, 20, 0, 20)
+	MinBtn.Position = UDim2.new(1, -46, 0, 2)
+	MinBtn.BackgroundTransparency = 1
 	MinBtn.Font = Enum.Font.SourceSansBold
 	MinBtn.Text = "—"
-	MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	MinBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
 	MinBtn.TextSize = 14
 	MinBtn.ZIndex = 10
 	MinBtn.Parent = TopBar
-	local MinCorner = Instance.new("UICorner")
-	MinCorner.CornerRadius = UDim.new(0, 6)
-	MinCorner.Parent = MinBtn
 
 	local CloseBtn = Instance.new("TextButton")
-	CloseBtn.Size = UDim2.new(0, 24, 0, 24)
-	CloseBtn.Position = UDim2.new(1, -24, 0, 0)
-	CloseBtn.BackgroundTransparency = 0.9
-	CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	CloseBtn.Size = UDim2.new(0, 20, 0, 20)
+	CloseBtn.Position = UDim2.new(1, -22, 0, 2)
+	CloseBtn.BackgroundTransparency = 1
 	CloseBtn.Font = Enum.Font.SourceSansBold
 	CloseBtn.Text = "×"
 	CloseBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-	CloseBtn.TextSize = 16
+	CloseBtn.TextSize = 18
 	CloseBtn.ZIndex = 10
 	CloseBtn.Parent = TopBar
-	local CloseCorner = Instance.new("UICorner")
-	CloseCorner.CornerRadius = UDim.new(0, 6)
-	CloseCorner.Parent = CloseBtn
 
 	local Sidebar = Instance.new("Frame")
 	Sidebar.Name = "Sidebar"
@@ -360,21 +365,10 @@ function Library:CreateWindow(config)
 	SidebarCorner.CornerRadius = UDim.new(0, 14)
 	SidebarCorner.Parent = Sidebar
 
-	local Title = Instance.new("TextLabel")
-	Title.Name = "Title"
-	Title.Size = UDim2.new(1, 0, 0, 45)
-	Title.BackgroundTransparency = 1
-	Title.Active = true
-	Title.Font = Enum.Font.SourceSansBold
-	Title.Text = windowTitle
-	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-	Title.TextSize = 14
-	Title.Parent = Sidebar
-
 	local ButtonList = Instance.new("ScrollingFrame")
 	ButtonList.Name = "ButtonList"
-	ButtonList.Size = UDim2.new(1, 0, 1, -55)
-	ButtonList.Position = UDim2.new(0, 0, 0, 45)
+	ButtonList.Size = UDim2.new(1, 0, 1, 0)
+	ButtonList.Position = UDim2.new(0, 0, 0, 0)
 	ButtonList.BackgroundTransparency = 1
 	ButtonList.BorderSizePixel = 0
 	ButtonList.ScrollBarThickness = 2
@@ -1415,16 +1409,22 @@ function Library:CreateWindow(config)
 		end)
 	end
 
+	local ConfirmDialogGroup = Instance.new("CanvasGroup")
+	ConfirmDialogGroup.Size = UDim2.new(0, 240, 0, 100)
+	ConfirmDialogGroup.Position = UDim2.new(0.5, -120, 0.5, -50)
+	ConfirmDialogGroup.BackgroundTransparency = 1
+	ConfirmDialogGroup.GroupTransparency = 1
+	ConfirmDialogGroup.Visible = false
+	ConfirmDialogGroup.ZIndex = 30000
+	ConfirmDialogGroup.Parent = ScreenGui
+
 	local ConfirmDialog = Instance.new("Frame")
 	ConfirmDialog.Name = "ConfirmDialog"
-	ConfirmDialog.Size = UDim2.new(0, 240, 0, 100)
-	ConfirmDialog.Position = UDim2.new(0.5, -120, 0.5, -50)
+	ConfirmDialog.Size = UDim2.new(1, 0, 1, 0)
 	ConfirmDialog.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 	ConfirmDialog.BackgroundTransparency = 0.15
 	ConfirmDialog.BorderSizePixel = 0
-	ConfirmDialog.Visible = false
-	ConfirmDialog.ZIndex = 30000
-	ConfirmDialog.Parent = ScreenGui
+	ConfirmDialog.Parent = ConfirmDialogGroup
 
 	local DialogCorner = Instance.new("UICorner")
 	DialogCorner.CornerRadius = UDim.new(0, 12)
@@ -1455,7 +1455,6 @@ function Library:CreateWindow(config)
 	YesBtn.Text = "是"
 	YesBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	YesBtn.TextSize = 14
-	YesBtn.ZIndex = 30001
 	YesBtn.Parent = ConfirmDialog
 	local YesCorner = Instance.new("UICorner")
 	YesCorner.CornerRadius = UDim.new(0, 8)
@@ -1470,26 +1469,46 @@ function Library:CreateWindow(config)
 	NoBtn.Text = "不是"
 	NoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 	NoBtn.TextSize = 14
-	NoBtn.ZIndex = 30001
 	NoBtn.Parent = ConfirmDialog
 	local NoCorner = Instance.new("UICorner")
 	NoCorner.CornerRadius = UDim.new(0, 8)
 	NoCorner.Parent = NoBtn
 
+	local function hideConfirm()
+		TweenService:Create(ConfirmDialogGroup, TweenInfo.new(0.2), { GroupTransparency = 1 }):Play()
+		task.delay(0.2, function() ConfirmDialogGroup.Visible = false end)
+	end
+
+	NoBtn.MouseButton1Click:Connect(hideConfirm)
+
+	local DeleteOverlay = Instance.new("Frame")
+	DeleteOverlay.Size = UDim2.new(1, 0, 1, 0)
+	DeleteOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	DeleteOverlay.BackgroundTransparency = 1
+	DeleteOverlay.BorderSizePixel = 0
+	DeleteOverlay.Visible = false
+	DeleteOverlay.ZIndex = 40000
+	DeleteOverlay.Parent = ScreenGui
+
 	YesBtn.MouseButton1Click:Connect(function()
-		ScreenGui:Destroy()
-	end)
-	NoBtn.MouseButton1Click:Connect(function()
-		ConfirmDialog.Visible = false
+		hideConfirm()
+		task.delay(0.2, function()
+			DeleteOverlay.Visible = true
+			TweenService:Create(DeleteOverlay, TweenInfo.new(0.5), { BackgroundTransparency = 0.6 }):Play()
+			task.delay(0.5, function()
+				ScreenGui:Destroy()
+			end)
+		end)
 	end)
 
 	CloseBtn.MouseButton1Click:Connect(function()
-		ConfirmDialog.Visible = true
+		ConfirmDialogGroup.Visible = true
+		TweenService:Create(ConfirmDialogGroup, TweenInfo.new(0.25), { GroupTransparency = 0 }):Play()
 	end)
 
 	MinBtn.MouseButton1Click:Connect(function()
 		if MainPanel.Visible then
-			MainPanel.Visible = false
+			closeUI()
 		end
 	end)
 
@@ -1788,7 +1807,7 @@ function Library:CreateWindow(config)
 		if uiOpen then lastDraggedPosition = newPos end
 	end
 
-	Title.InputBegan:Connect(function(input)
+	TitleBarLabel.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			dragStart = input.Position
@@ -1799,7 +1818,7 @@ function Library:CreateWindow(config)
 		end
 	end)
 
-	Title.InputChanged:Connect(function(input)
+	TitleBarLabel.InputChanged:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 			dragInput = input
 		end
