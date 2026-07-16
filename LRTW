@@ -180,8 +180,8 @@ function Library:CreateWindow(config)
 
 	local DynamicIsland = Instance.new("Frame")
 	DynamicIsland.Name = "DynamicIsland"
-	DynamicIsland.Size = UDim2.new(0, 220, 0, 26)
-	DynamicIsland.Position = UDim2.new(0.5, -110, 0, 8)
+	DynamicIsland.Size = UDim2.new(0, 140, 0, 26)
+	DynamicIsland.Position = UDim2.new(0.5, -70, 0, 8)
 	DynamicIsland.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
 	DynamicIsland.BackgroundTransparency = 0.35
 	DynamicIsland.BorderSizePixel = 0
@@ -226,20 +226,17 @@ function Library:CreateWindow(config)
 	PingLabel.LayoutOrder = 2
 	PingLabel.Parent = DynamicIsland
 
-	local ToggleButton = Instance.new("TextButton")
-	ToggleButton.Size = UDim2.new(0, 48, 0, 18)
-	ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	ToggleButton.BackgroundTransparency = 0.8
-	ToggleButton.Font = Enum.Font.SourceSansBold
-	ToggleButton.Text = "OPEN"
-	ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	ToggleButton.TextSize = 10
-	ToggleButton.LayoutOrder = 3
-	ToggleButton.Parent = DynamicIsland
-
-	local ToggleCorner = Instance.new("UICorner")
-	ToggleCorner.CornerRadius = UDim.new(0, 9)
-	ToggleCorner.Parent = ToggleButton
+	local FloatButton = Instance.new("ImageButton")
+	FloatButton.Size = UDim2.new(0, 45, 0, 45)
+	FloatButton.Position = UDim2.new(0, 15, 0.5, -22)
+	FloatButton.BackgroundTransparency = 1
+	FloatButton.Image = "rbxassetid://82941434797457"
+	FloatButton.ImageColor3 = Color3.fromRGB(255, 255, 255)
+	FloatButton.ZIndex = 20
+	FloatButton.Parent = ScreenGui
+	local FloatCorner = Instance.new("UICorner")
+	FloatCorner.CornerRadius = UDim.new(1, 0)
+	FloatCorner.Parent = FloatButton
 
 	local MainPanel = Instance.new("Frame")
 	MainPanel.Name = "MainPanel"
@@ -302,9 +299,48 @@ function Library:CreateWindow(config)
 	PanelStroke.Thickness = 1.5
 	PanelStroke.Parent = MainPanel
 
+	local TopBar = Instance.new("Frame")
+	TopBar.Name = "TopBar"
+	TopBar.Size = UDim2.new(1, 0, 0, 24)
+	TopBar.Position = UDim2.new(0, 0, 0, 0)
+	TopBar.BackgroundTransparency = 1
+	TopBar.ZIndex = 10
+	TopBar.Parent = CanvasGroup
+
+	local MinBtn = Instance.new("TextButton")
+	MinBtn.Size = UDim2.new(0, 24, 0, 24)
+	MinBtn.Position = UDim2.new(1, -52, 0, 0)
+	MinBtn.BackgroundTransparency = 0.9
+	MinBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	MinBtn.Font = Enum.Font.SourceSansBold
+	MinBtn.Text = "—"
+	MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	MinBtn.TextSize = 14
+	MinBtn.ZIndex = 10
+	MinBtn.Parent = TopBar
+	local MinCorner = Instance.new("UICorner")
+	MinCorner.CornerRadius = UDim.new(0, 6)
+	MinCorner.Parent = MinBtn
+
+	local CloseBtn = Instance.new("TextButton")
+	CloseBtn.Size = UDim2.new(0, 24, 0, 24)
+	CloseBtn.Position = UDim2.new(1, -24, 0, 0)
+	CloseBtn.BackgroundTransparency = 0.9
+	CloseBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	CloseBtn.Font = Enum.Font.SourceSansBold
+	CloseBtn.Text = "×"
+	CloseBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+	CloseBtn.TextSize = 16
+	CloseBtn.ZIndex = 10
+	CloseBtn.Parent = TopBar
+	local CloseCorner = Instance.new("UICorner")
+	CloseCorner.CornerRadius = UDim.new(0, 6)
+	CloseCorner.Parent = CloseBtn
+
 	local Sidebar = Instance.new("Frame")
 	Sidebar.Name = "Sidebar"
-	Sidebar.Size = UDim2.new(0, 115, 1, 0)
+	Sidebar.Size = UDim2.new(0, 115, 1, -24)
+	Sidebar.Position = UDim2.new(0, 0, 0, 24)
 	Sidebar.BackgroundColor3 = Color3.fromRGB(5, 5, 10)
 	Sidebar.BackgroundTransparency = 0.75
 	Sidebar.BorderSizePixel = 0
@@ -350,8 +386,8 @@ function Library:CreateWindow(config)
 
 	local ContentContainer = Instance.new("Frame")
 	ContentContainer.Name = "ContentContainer"
-	ContentContainer.Size = UDim2.new(1, -135, 1, -20)
-	ContentContainer.Position = UDim2.new(0, 125, 0, 12)
+	ContentContainer.Size = UDim2.new(1, -135, 1, -44)
+	ContentContainer.Position = UDim2.new(0, 125, 0, 32)
 	ContentContainer.BackgroundTransparency = 1
 	ContentContainer.Parent = CanvasGroup
 
@@ -1367,6 +1403,84 @@ function Library:CreateWindow(config)
 		end)
 	end
 
+	local ConfirmDialog = Instance.new("Frame")
+	ConfirmDialog.Name = "ConfirmDialog"
+	ConfirmDialog.Size = UDim2.new(0, 240, 0, 100)
+	ConfirmDialog.Position = UDim2.new(0.5, -120, 0.5, -50)
+	ConfirmDialog.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+	ConfirmDialog.BackgroundTransparency = 0.15
+	ConfirmDialog.BorderSizePixel = 0
+	ConfirmDialog.Visible = false
+	ConfirmDialog.ZIndex = 30000
+	ConfirmDialog.Parent = ScreenGui
+
+	local DialogCorner = Instance.new("UICorner")
+	DialogCorner.CornerRadius = UDim.new(0, 12)
+	DialogCorner.Parent = ConfirmDialog
+
+	local DialogStroke = Instance.new("UIStroke")
+	DialogStroke.Color = Color3.fromRGB(255, 255, 255)
+	DialogStroke.Transparency = 0.5
+	DialogStroke.Thickness = 1.5
+	DialogStroke.Parent = ConfirmDialog
+
+	local DialogText = Instance.new("TextLabel")
+	DialogText.Size = UDim2.new(1, 0, 0, 40)
+	DialogText.Position = UDim2.new(0, 0, 0, 10)
+	DialogText.BackgroundTransparency = 1
+	DialogText.Font = Enum.Font.SourceSansBold
+	DialogText.Text = "是否删除 UI？"
+	DialogText.TextColor3 = Color3.fromRGB(255, 255, 255)
+	DialogText.TextSize = 14
+	DialogText.Parent = ConfirmDialog
+
+	local YesBtn = Instance.new("TextButton")
+	YesBtn.Size = UDim2.new(0, 80, 0, 28)
+	YesBtn.Position = UDim2.new(0, 28, 0, 58)
+	YesBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+	YesBtn.BackgroundTransparency = 0.3
+	YesBtn.Font = Enum.Font.SourceSansBold
+	YesBtn.Text = "是"
+	YesBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	YesBtn.TextSize = 14
+	YesBtn.ZIndex = 30001
+	YesBtn.Parent = ConfirmDialog
+	local YesCorner = Instance.new("UICorner")
+	YesCorner.CornerRadius = UDim.new(0, 8)
+	YesCorner.Parent = YesBtn
+
+	local NoBtn = Instance.new("TextButton")
+	NoBtn.Size = UDim2.new(0, 80, 0, 28)
+	NoBtn.Position = UDim2.new(1, -108, 0, 58)
+	NoBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	NoBtn.BackgroundTransparency = 0.8
+	NoBtn.Font = Enum.Font.SourceSansBold
+	NoBtn.Text = "不是"
+	NoBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	NoBtn.TextSize = 14
+	NoBtn.ZIndex = 30001
+	NoBtn.Parent = ConfirmDialog
+	local NoCorner = Instance.new("UICorner")
+	NoCorner.CornerRadius = UDim.new(0, 8)
+	NoCorner.Parent = NoBtn
+
+	YesBtn.MouseButton1Click:Connect(function()
+		ScreenGui:Destroy()
+	end)
+	NoBtn.MouseButton1Click:Connect(function()
+		ConfirmDialog.Visible = false
+	end)
+
+	CloseBtn.MouseButton1Click:Connect(function()
+		ConfirmDialog.Visible = true
+	end)
+
+	MinBtn.MouseButton1Click:Connect(function()
+		if MainPanel.Visible then
+			MainPanel.Visible = false
+		end
+	end)
+
 	local activeTab = nil
 	local function switchTab(tabName)
 		if activeTab == tabName then return end
@@ -1571,62 +1685,86 @@ function Library:CreateWindow(config)
 	local uiOpen = false
 	local lastDraggedPosition = DefaultPosition
 
-	ToggleButton.MouseButton1Click:Connect(function()
-		uiOpen = not uiOpen
+	local function openUI()
+		if uiOpen then return end
+		uiOpen = true
+		MainPanel.Visible = true
+		MainPanel.Size = TargetMinSize
+		MainPanel.Position = TargetMinPosition
+		CanvasGroup.GroupTransparency = 1
+		BackgroundOverlay.BackgroundTransparency = 1
+		PanelBackgroundImage.ImageTransparency = 1
+		TweenService:Create(MainPanel, TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Size = DefaultSize,
+			Position = lastDraggedPosition
+		}):Play()
+		TweenService:Create(CanvasGroup, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {
+			GroupTransparency = 0
+		}):Play()
+		TweenService:Create(BackgroundOverlay, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {
+			BackgroundTransparency = 0.35
+		}):Play()
+		TweenService:Create(PanelBackgroundImage, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {
+			ImageTransparency = 0
+		}):Play()
+	end
+
+	local function closeUI()
+		if not uiOpen then return end
+		uiOpen = false
+		closePicker()
+		if ActiveDropdownList and CloseActiveDropdownFunc then
+			CloseActiveDropdownFunc()
+		end
+		local sizeTween = TweenService:Create(MainPanel, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+			Size = TargetMinSize,
+			Position = TargetMinPosition
+		})
+		local transTween = TweenService:Create(CanvasGroup, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {
+			GroupTransparency = 1
+		})
+		TweenService:Create(BackgroundOverlay, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {
+			BackgroundTransparency = 1
+		}):Play()
+		TweenService:Create(PanelBackgroundImage, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {
+			ImageTransparency = 1
+		}):Play()
+		sizeTween:Play()
+		transTween:Play()
+		task.spawn(function()
+			sizeTween.Completed:Wait()
+			if not uiOpen then MainPanel.Visible = false end
+		end)
+	end
+
+	FloatButton.MouseButton1Click:Connect(function()
 		if uiOpen then
-			TweenService:Create(DynamicIsland, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {
-				Size = UDim2.new(0, 240, 0, 30)
-			}):Play()
-			ToggleButton.Text = "CLOSE"
-			ToggleButton.TextColor3 = Color3.fromRGB(255, 120, 120)
-			MainPanel.Visible = true
-			MainPanel.Size = TargetMinSize
-			MainPanel.Position = TargetMinPosition
-			CanvasGroup.GroupTransparency = 1
-			BackgroundOverlay.BackgroundTransparency = 1
-			PanelBackgroundImage.ImageTransparency = 1
-			TweenService:Create(MainPanel, TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-				Size = DefaultSize,
-				Position = lastDraggedPosition
-			}):Play()
-			TweenService:Create(CanvasGroup, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {
-				GroupTransparency = 0
-			}):Play()
-			TweenService:Create(BackgroundOverlay, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {
-				BackgroundTransparency = 0.35
-			}):Play()
-			TweenService:Create(PanelBackgroundImage, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {
-				ImageTransparency = 0
-			}):Play()
+			closeUI()
 		else
-			closePicker()
-			if ActiveDropdownList and CloseActiveDropdownFunc then
-				CloseActiveDropdownFunc()
+			openUI()
+		end
+	end)
+
+	local floatDragging = false
+	local floatDragStart, floatStartPos
+	FloatButton.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			floatDragging = true
+			floatDragStart = input.Position
+			floatStartPos = FloatButton.Position
+		end
+	end)
+	FloatButton.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			if floatDragging then
+				local delta = input.Position - floatDragStart
+				FloatButton.Position = UDim2.new(floatStartPos.X.Scale, floatStartPos.X.Offset + delta.X, floatStartPos.Y.Scale, floatStartPos.Y.Offset + delta.Y)
 			end
-			TweenService:Create(DynamicIsland, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {
-				Size = UDim2.new(0, 220, 0, 26)
-			}):Play()
-			ToggleButton.Text = "OPEN"
-			ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-			local sizeTween = TweenService:Create(MainPanel, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-				Size = TargetMinSize,
-				Position = TargetMinPosition
-			})
-			local transTween = TweenService:Create(CanvasGroup, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {
-				GroupTransparency = 1
-			})
-			TweenService:Create(BackgroundOverlay, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {
-				BackgroundTransparency = 1
-			}):Play()
-			TweenService:Create(PanelBackgroundImage, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {
-				ImageTransparency = 1
-			}):Play()
-			sizeTween:Play()
-			transTween:Play()
-			task.spawn(function()
-				sizeTween.Completed:Wait()
-				if not uiOpen then MainPanel.Visible = false end
-			end)
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			floatDragging = false
 		end
 	end)
 
