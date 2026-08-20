@@ -1974,7 +1974,7 @@ function LiquidGlassUI:_InstallBuiltinSettingsTab(config)
 	SettingsTab:CreateSection("外观")
 	SettingsTab:CreateParagraph(
 		"液态玻璃主题",
-		"点击下方色板切换整体配色。"
+		"点击下方色板切换整体配色，切换后新建的控件会使用新主题；已存在的复杂控件建议重新打开面板生效。"
 	)
 
 	local grid = Create("Frame", {
@@ -2046,7 +2046,7 @@ function LiquidGlassUI:_InstallBuiltinSettingsTab(config)
 	end)
 
 	SettingsTab:CreateSection("关于")
-	SettingsTab:CreateParagraph("LiquidGlassUI", "版本 " .. LiquidGlassUI.Version .. "  ·  1")
+	SettingsTab:CreateParagraph("LiquidGlassUI", "版本 " .. LiquidGlassUI.Version .. "  ·  纯前端 UI 组件库，不包含任何游戏功能逻辑，需自行在各控件回调中实现具体功能。")
 
 	return SettingsTab
 end
