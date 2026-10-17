@@ -230,6 +230,12 @@ function WindUI:_theme()
 end
 
 function WindUI:CreateWindow(config)
+    if type(self) ~= "table" then
+        config = self
+    end
+    if type(config) == "string" then
+        config = {Title = config}
+    end
     config = config or {}
     local window = setmetatable({}, WindUI)
     window.Config = config
@@ -303,6 +309,8 @@ function WindUI:CreateWindow(config)
         openIconHolder.AnchorPoint = Vector2.new(0.5, 0.5)
     end
     makeDraggable(openBtn)
+    window.FloatBall = openBtn
+    window.OpenButton = openBtn
 
     local theme0 = Themes[window.ThemeName]
     local winSize = config.Size or UDim2.fromOffset(580, 450)
@@ -715,6 +723,9 @@ function WindUI:SelectTab(index)
 end
 
 function WindUI:Tab(tabConfig)
+    if type(tabConfig) == "string" then
+        tabConfig = {Title = tabConfig}
+    end
     tabConfig = tabConfig or {}
     local window = self
     local index = #window.Tabs + 1
@@ -2121,6 +2132,52 @@ function buildElementAPI(window, getParent)
             Set = function(_, c) setColor(c, false) end,
             Get = function() return current end,
         }
+    end
+
+    function api:AddSwitch(title, callback)
+        return self:Toggle({Title = title, Callback = callback})
+    end
+
+    function api:AddInput(title, placeholder, callback)
+        return self:Input({Title = title, Placeholder = placeholder, Callback = callback})
+    end
+
+    function api:AddDropdown(title, options, default, callback)
+        if type(default) == "function" then
+            callback = default
+            default = nil
+        end
+        local def = default
+        if type(def) == "table" and type(def[1]) == "number" then
+            local mapped = {}
+            for _, idx in ipairs(def) do
+                if options[idx] then
+                    table.insert(mapped, options[idx])
+                end
+            end
+            def = mapped
+        end
+        return self:Dropdown({Title = title, Items = options, Default = def, Callback = callback})
+    end
+
+    function api:AddSlider(title, minV, maxV, defV, callback)
+        return self:Slider({Title = title, Value = {Min = minV, Max = maxV, Default = defV}, Callback = callback})
+    end
+
+    function api:AddButton(title, callback)
+        return self:Button({Title = title, Callback = callback})
+    end
+
+    function api:AddKeybind(title, default, callback)
+        return self:Keybind({Title = title, Value = default, Callback = callback})
+    end
+
+    function api:AddLabel(title)
+        return self:Label({Title = title})
+    end
+
+    function api:AddParagraph(title, desc)
+        return self:Paragraph({Title = title, Desc = desc})
     end
 
     return api
