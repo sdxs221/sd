@@ -9,24 +9,24 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
 local ZakaUI = {}
-ZakaUI.Version = "1.0.0"
+ZakaUI.Version = "1.1.0"
 
 local Theme = {
-	Accent = Color3.fromRGB(140, 122, 255),
-	Accent2 = Color3.fromRGB(96, 208, 255),
-	Accent3 = Color3.fromRGB(255, 130, 200),
+	Accent = Color3.fromRGB(138, 120, 255),
+	Accent2 = Color3.fromRGB(90, 200, 255),
+	Accent3 = Color3.fromRGB(255, 128, 196),
 	Text = Color3.fromRGB(246, 247, 252),
-	Sub = Color3.fromRGB(150, 154, 172),
-	Base = Color3.fromRGB(15, 15, 21),
-	BaseTransparency = 0.14,
+	Sub = Color3.fromRGB(148, 152, 170),
+	Base = Color3.fromRGB(10, 10, 16),
+	BaseTransparency = 0.08,
 	Surface = Color3.fromRGB(255, 255, 255),
-	SurfaceTransparency = 0.945,
-	HoverTransparency = 0.885,
-	Radius = 11,
-	WindowRadius = 18,
+	SurfaceTransparency = 0.94,
+	HoverTransparency = 0.875,
+	Radius = 12,
+	WindowRadius = 20,
 	Font = Enum.Font.GothamMedium,
 	FontBold = Enum.Font.GothamBold,
-	BlurSize = 18,
+	BlurSize = 20,
 }
 ZakaUI.Theme = Theme
 
@@ -109,10 +109,10 @@ local function ripple(parent, x, y, color)
 		BackgroundColor3 = color or Color3.fromRGB(255, 255, 255),
 		BackgroundTransparency = 0.6,
 		BorderSizePixel = 0,
-		ZIndex = (parent.ZIndex or 1) + 1,
+		ZIndex = (parent.ZIndex or 1) + 2,
 	})
 	circle(dot)
-	tween(dot, { Size = UDim2.fromOffset(biggest * 1.6, biggest * 1.6), BackgroundTransparency = 1 }, 0.5)
+	tween(dot, { Size = UDim2.fromOffset(biggest * 1.7, biggest * 1.7), BackgroundTransparency = 1 }, 0.5)
 	task.delay(0.55, function()
 		if dot then
 			dot:Destroy()
@@ -124,23 +124,23 @@ local function hoverable(frame, base, target, strokeObj)
 	frame.MouseEnter:Connect(function()
 		tween(frame, { BackgroundTransparency = target }, 0.16)
 		if strokeObj then
-			tween(strokeObj, { Transparency = 0.72 }, 0.16)
+			tween(strokeObj, { Transparency = 0.62, Color = Theme.Accent }, 0.16)
 		end
 	end)
 	frame.MouseLeave:Connect(function()
 		tween(frame, { BackgroundTransparency = base }, 0.22)
 		if strokeObj then
-			tween(strokeObj, { Transparency = 0.93 }, 0.22)
+			tween(strokeObj, { Transparency = 0.93, Color = Color3.fromRGB(255, 255, 255) }, 0.22)
 		end
 	end)
 end
 
-local function dragify(handle, target, onTap)
+local function dragify(handle, target, onTap, onState)
 	local dragging = false
 	local moved = false
-	local startMouse = Vector2.new()
+	local startMouse = Vector2.zero
 	local startPos = UDim2.new()
-	handle.InputBegan:Connect(function(input)
+	local conn1 = handle.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
 			moved = false
@@ -148,28 +148,43 @@ local function dragify(handle, target, onTap)
 			startPos = target.Position
 		end
 	end)
-	UserInputService.InputChanged:Connect(function(input)
+	local conn2 = UserInputService.InputChanged:Connect(function(input)
 		if not dragging then
 			return
 		end
 		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 			local delta = input.Position - startMouse
-			if math.abs(delta.X) > 4 or math.abs(delta.Y) > 4 then
+			if not moved and (math.abs(delta.X) > 3 or math.abs(delta.Y) > 3) then
 				moved = true
+				if onState then
+					onState(true)
+				end
 			end
-			target.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+			if moved then
+				target.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+			end
 		end
 	end)
-	UserInputService.InputEnded:Connect(function(input)
+	local conn3 = UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			local wasDragging = dragging
-			local tapped = not moved
+			local was = dragging
 			dragging = false
-			if wasDragging and tapped and onTap then
-				onTap()
+			if was then
+				if moved then
+					if onState then
+						onState(false)
+					end
+				elseif onTap then
+					onTap()
+				end
 			end
 		end
 	end)
+	return function()
+		conn1:Disconnect()
+		conn2:Disconnect()
+		conn3:Disconnect()
+	end
 end
 
 local function getParent()
@@ -209,10 +224,10 @@ local function animateElement(frame, delay)
 	local scale = frame:FindFirstChildOfClass("UIScale")
 	local base = frame:GetAttribute("BaseTransparency")
 	if base == nil then
-		base = 0.945
+		base = 0.94
 	end
 	if scale then
-		scale.Scale = 0.93
+		scale.Scale = 0.92
 	end
 	frame.BackgroundTransparency = 1
 	task.delay(delay or 0, function()
@@ -224,6 +239,153 @@ local function animateElement(frame, delay)
 		end
 		tween(frame, { BackgroundTransparency = base }, 0.3)
 	end)
+end
+
+local function markIcon(inst)
+	inst:SetAttribute("IconPart", true)
+	return inst
+end
+
+local function tintIcon(holder, color)
+	for _, d in ipairs(holder:GetDescendants()) do
+		if d:GetAttribute("IconPart") then
+			if d:IsA("UIStroke") then
+				d.Color = color
+			elseif d:IsA("TextLabel") then
+				d.TextColor3 = color
+			elseif d:IsA("ImageLabel") then
+				d.ImageColor3 = color
+			else
+				d.BackgroundColor3 = color
+			end
+		end
+	end
+end
+
+local function makeIcon(parent, icon, size, color, zindex)
+	zindex = zindex or 9
+	local holder = create("Frame", {
+		Parent = parent,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(size, size),
+		BackgroundTransparency = 1,
+		ZIndex = zindex,
+	})
+	local key = string.lower(tostring(icon or ""))
+	local function part(props)
+		local f = create("Frame", props)
+		markIcon(f)
+		return f
+	end
+	if string.find(key, "rbxasset") then
+		local img = create("ImageLabel", {
+			Parent = holder,
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			Image = tostring(icon),
+			ImageColor3 = color,
+			ZIndex = zindex + 1,
+		})
+		markIcon(img)
+		return holder
+	end
+	if key == "star" or key == "★" then
+		local a = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.52), Size = UDim2.fromOffset(size * 0.6, size), Rotation = 45, BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		corner(a, size * 0.18)
+		local b = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.52), Size = UDim2.fromOffset(size, size * 0.6), Rotation = 45, BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		corner(b, size * 0.18)
+	elseif key == "spark" or key == "✦" or key == "diamond" then
+		local a = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(size * 0.64, size * 0.64), Rotation = 45, BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		corner(a, size * 0.15)
+	elseif key == "gear" or key == "⚙" or key == "settings" then
+		local ring = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(size * 0.66, size * 0.66), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		circle(ring)
+		markIcon(stroke(ring, color, 0, math.max(2, size * 0.14)))
+		for _, rot in ipairs({ 0, 45, 90, 135 }) do
+			local bar = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(size * 0.92, math.max(2, size * 0.12)), Rotation = rot, BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex })
+			corner(bar, math.max(2, size * 0.12))
+		end
+		local dot = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(size * 0.22, size * 0.22), BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		circle(dot)
+	elseif key == "info" or key == "i" or key == "about" then
+		local dot = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.3), Size = UDim2.fromOffset(size * 0.2, size * 0.2), BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		circle(dot)
+		local stem = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.68), Size = UDim2.fromOffset(math.max(2, size * 0.16), size * 0.44), BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		corner(stem, math.max(2, size * 0.16))
+	elseif key == "home" then
+		holder.ClipsDescendants = true
+		local roof = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.16), Size = UDim2.fromOffset(size * 0.76, size * 0.76), Rotation = 45, BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		corner(roof, size * 0.1)
+		local body = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.7), Size = UDim2.fromOffset(size * 0.6, size * 0.5), BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		corner(body, size * 0.1)
+	elseif key == "user" or key == "player" then
+		holder.ClipsDescendants = true
+		local head = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.34), Size = UDim2.fromOffset(size * 0.42, size * 0.42), BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		circle(head)
+		local body = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 1.05), Size = UDim2.fromOffset(size * 0.95, size * 0.95), BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		circle(body)
+	elseif key == "eye" or key == "visual" then
+		local ring = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(size * 0.92, size * 0.92), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		circle(ring)
+		markIcon(stroke(ring, color, 0, math.max(2, size * 0.12)))
+		local dot = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(size * 0.3, size * 0.3), BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		circle(dot)
+	elseif key == "search" or key == "find" then
+		local ring = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.42, 0.42), Size = UDim2.fromOffset(size * 0.58, size * 0.58), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		circle(ring)
+		markIcon(stroke(ring, color, 0, math.max(2, size * 0.12)))
+		local handle = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.72, 0.72), Size = UDim2.fromOffset(size * 0.42, math.max(2, size * 0.12)), Rotation = 45, BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		corner(handle, math.max(2, size * 0.12))
+	elseif key == "cross" or key == "x" or key == "close" then
+		local t = math.max(2, size * 0.14)
+		local l1 = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(size * 0.78, t), Rotation = 45, BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		corner(l1, t)
+		local l2 = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(size * 0.78, t), Rotation = -45, BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+		corner(l2, t)
+	else
+		local ch = tostring(icon or "?")
+		if #ch == 1 and string.match(ch, "[%w%p]") then
+			local lbl = create("TextLabel", { Parent = holder, Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Text = ch, Font = Enum.Font.GothamBold, TextSize = math.floor(size * 0.95), TextColor3 = color, ZIndex = zindex + 1 })
+			markIcon(lbl)
+		else
+			local a = part({ Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(size * 0.58, size * 0.58), Rotation = 45, BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = zindex + 1 })
+			corner(a, size * 0.13)
+		end
+	end
+	return holder
+end
+
+local function drawX(parent, size, color, zindex, anchor, position)
+	local btn = create("TextButton", {
+		Parent = parent,
+		AnchorPoint = anchor or Vector2.new(0.5, 0.5),
+		Position = position or UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromOffset(size, size),
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		AutoButtonColor = false,
+		Text = "",
+		ZIndex = zindex or 10,
+	})
+	circle(btn)
+	local t = math.max(2, size * 0.12)
+	local l1 = create("Frame", { Parent = btn, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(size * 0.52, t), Rotation = 45, BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = (zindex or 10) + 1 })
+	corner(l1, t)
+	local l2 = create("Frame", { Parent = btn, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(size * 0.52, t), Rotation = -45, BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = (zindex or 10) + 1 })
+	corner(l2, t)
+	return btn
+end
+
+local function drawChevron(parent, size, color, zindex)
+	local holder = create("Frame", { Parent = parent, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(size, size), BackgroundTransparency = 1, ZIndex = zindex or 10 })
+	local t = math.max(2, size * 0.2)
+	local l1 = create("Frame", { Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.38, 0.44), Size = UDim2.fromOffset(size * 0.56, t), Rotation = 45, BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = (zindex or 10) + 1 })
+	corner(l1, t)
+	local l2 = create("Frame", { Parent = holder, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.62, 0.44), Size = UDim2.fromOffset(size * 0.56, t), Rotation = -45, BackgroundColor3 = color, BorderSizePixel = 0, ZIndex = (zindex or 10) + 1 })
+	corner(l2, t)
+	return holder
 end
 
 function ZakaUI.CreateWindow(a, b)
@@ -241,6 +403,8 @@ function ZakaUI.CreateWindow(a, b)
 	for k, v in next, (cfg.Theme or {}) do
 		theme[k] = v
 	end
+
+	local connections = {}
 
 	local gui = create("ScreenGui", {
 		Name = "ZakaUI_" .. HttpService:GenerateGUID(false),
@@ -260,10 +424,11 @@ function ZakaUI.CreateWindow(a, b)
 	win.Title = cfg.Title or "Zaka UI"
 
 	local blur
+	local blurTarget = cfg.BlurSize or theme.BlurSize
 	if cfg.Blur ~= false then
 		blur = create("BlurEffect", {
 			Name = "ZakaUIBlur",
-			Size = cfg.BlurSize or theme.BlurSize,
+			Size = 0,
 			Enabled = false,
 			Parent = Lighting,
 		})
@@ -272,48 +437,23 @@ function ZakaUI.CreateWindow(a, b)
 	local toggleBtn = create("TextButton", {
 		Parent = gui,
 		Name = "ToggleButton",
-		Size = UDim2.fromOffset(52, 52),
+		Size = UDim2.fromOffset(50, 50),
 		Position = cfg.TogglePosition or UDim2.new(0, 24, 0.5, 0),
 		AnchorPoint = Vector2.new(0, 0.5),
-		BackgroundColor3 = Color3.fromRGB(9, 9, 13),
-		BackgroundTransparency = 0.02,
+		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+		BackgroundTransparency = 0,
 		AutoButtonColor = false,
 		Text = "",
-		ClipsDescendants = false,
 		ZIndex = 20,
 	})
 	circle(toggleBtn)
-	local toggleStroke = create("UIStroke", {
-		Thickness = 1.4,
-		Color = theme.Accent,
-		Transparency = 0.3,
-		Parent = toggleBtn,
-	})
-	gradient(toggleStroke, AccentGradient, NumberSequence.new(0.25))
-
-	local toggleLogo = create("TextLabel", {
-		Parent = toggleBtn,
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-		Text = cfg.Logo or "Z",
-		Font = theme.FontBold,
-		TextSize = 22,
-		TextColor3 = Color3.fromRGB(255, 255, 255),
-		ZIndex = 22,
-	})
-	gradient(toggleLogo, AccentGradient, NumberSequence.new(0.05), 90)
-
-	local pulseConn = RunService.Heartbeat:Connect(function()
-		if not toggleStroke or not toggleStroke.Parent then
-			return
-		end
-		toggleStroke.Transparency = 0.5 + math.sin(os.clock() * 1.7) * 0.18
-	end)
+	create("UIStroke", { Thickness = 1.2, Color = Color3.fromRGB(255, 255, 255), Transparency = 0.85, Parent = toggleBtn })
+	local toggleIcon = makeIcon(toggleBtn, cfg.Logo or "star", 18, Color3.fromRGB(255, 255, 255), 22)
 
 	local main = create("Frame", {
 		Parent = gui,
 		Name = "Window",
-		Size = cfg.Size or UDim2.fromOffset(596, 384),
+		Size = cfg.Size or UDim2.fromOffset(600, 392),
 		Position = cfg.Position or UDim2.fromScale(0.5, 0.5),
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundColor3 = theme.Base,
@@ -327,10 +467,32 @@ function ZakaUI.CreateWindow(a, b)
 	local mainScale = create("UIScale", { Scale = 0.92, Parent = main })
 	win.Main = main
 
+	local shadow = create("Frame", {
+		Parent = gui,
+		Name = "Shadow",
+		Size = UDim2.new(0, main.Size.X.Offset + 18, 0, main.Size.Y.Offset + 18),
+		Position = main.Position,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+		BackgroundTransparency = 0.55,
+		BorderSizePixel = 0,
+		Visible = false,
+		ZIndex = 1,
+	})
+	corner(shadow, theme.WindowRadius + 8)
+	table.insert(connections, RunService.RenderStepped:Connect(function()
+		if shadow.Parent then
+			shadow.Position = main.Position
+		end
+	end))
+	main:GetPropertyChangedSignal("Visible"):Connect(function()
+		shadow.Visible = main.Visible
+	end)
+
 	local mainStroke = create("UIStroke", {
 		Color = Color3.fromRGB(255, 255, 255),
 		Thickness = 1,
-		Transparency = 0.82,
+		Transparency = 0.8,
 		Parent = main,
 	})
 	gradient(mainStroke, ColorSequence.new({
@@ -338,9 +500,9 @@ function ZakaUI.CreateWindow(a, b)
 		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
 		ColorSequenceKeypoint.new(1, theme.Accent2),
 	}), NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.5),
-		NumberSequenceKeypoint.new(0.5, 0.94),
-		NumberSequenceKeypoint.new(1, 0.5),
+		NumberSequenceKeypoint.new(0, 0.45),
+		NumberSequenceKeypoint.new(0.5, 0.92),
+		NumberSequenceKeypoint.new(1, 0.45),
 	}), 35)
 
 	if cfg.BackgroundImage and cfg.BackgroundImage ~= "" then
@@ -372,9 +534,9 @@ function ZakaUI.CreateWindow(a, b)
 	})
 	corner(tint, theme.WindowRadius)
 	gradient(tint, ColorSequence.new(Color3.fromRGB(255, 255, 255)), NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.86),
+		NumberSequenceKeypoint.new(0, 0.84),
 		NumberSequenceKeypoint.new(0.4, 1),
-		NumberSequenceKeypoint.new(1, 0.93),
+		NumberSequenceKeypoint.new(1, 0.92),
 	}), 115)
 
 	create("Frame", {
@@ -383,14 +545,14 @@ function ZakaUI.CreateWindow(a, b)
 		Position = UDim2.new(0.5, 0, 0, 1),
 		AnchorPoint = Vector2.new(0.5, 0),
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-		BackgroundTransparency = 0.72,
+		BackgroundTransparency = 0.7,
 		BorderSizePixel = 0,
 		ZIndex = 3,
 	})
 
 	local topbar = create("Frame", {
 		Parent = main,
-		Size = UDim2.new(1, 0, 0, 54),
+		Size = UDim2.new(1, 0, 0, 56),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ZIndex = 6,
@@ -399,21 +561,21 @@ function ZakaUI.CreateWindow(a, b)
 
 	local titleLabel = create("TextLabel", {
 		Parent = topbar,
-		Position = UDim2.fromOffset(20, 14),
-		Size = UDim2.new(1, -80, 0, 18),
+		Position = UDim2.fromOffset(20, 13),
+		Size = UDim2.new(1, -80, 0, 20),
 		BackgroundTransparency = 1,
 		Text = cfg.Title or "Zaka UI",
 		Font = theme.FontBold,
-		TextSize = 15,
+		TextSize = 16,
 		TextColor3 = Color3.fromRGB(255, 255, 255),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		ZIndex = 7,
 	})
-	gradient(titleLabel, AccentGradient, NumberSequence.new(0.05), 0)
+	gradient(titleLabel, AccentGradient, NumberSequence.new(0.02), 0)
 
 	create("TextLabel", {
 		Parent = topbar,
-		Position = UDim2.fromOffset(20, 32),
+		Position = UDim2.fromOffset(20, 34),
 		Size = UDim2.new(1, -80, 0, 12),
 		BackgroundTransparency = 1,
 		Text = cfg.Subtitle or ("v" .. ZakaUI.Version),
@@ -427,30 +589,28 @@ function ZakaUI.CreateWindow(a, b)
 	local closeBtn = create("TextButton", {
 		Parent = topbar,
 		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -16, 0.5, 0),
-		Size = UDim2.fromOffset(26, 26),
+		Position = UDim2.new(1, -18, 0.5, 0),
+		Size = UDim2.fromOffset(28, 28),
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-		BackgroundTransparency = 0.93,
+		BackgroundTransparency = 1,
 		AutoButtonColor = false,
-		Text = "✕",
-		Font = theme.FontBold,
-		TextSize = 12,
-		TextColor3 = theme.Sub,
+		Text = "",
 		ZIndex = 8,
 	})
 	circle(closeBtn)
-	local closeStroke = stroke(closeBtn, Color3.fromRGB(255, 255, 255), 0.9, 1)
-	hoverable(closeBtn, 0.93, 0.86, closeStroke)
-	closeBtn.MouseButton1Click:Connect(function()
+	local closeStroke = stroke(closeBtn, Color3.fromRGB(255, 255, 255), 0.88, 1)
+	drawX(closeBtn, 13, theme.Sub, 9)
+	hoverable(closeBtn, 1, 0.9, closeStroke)
+	closeBtn.Activated:Connect(function()
 		win:Close()
 	end)
 
-	dragify(topbar, main)
+	table.insert(connections, dragify(topbar, main))
 
 	local sidebar = create("Frame", {
 		Parent = main,
-		Position = UDim2.fromOffset(0, 54),
-		Size = UDim2.new(0, 70, 1, -54),
+		Position = UDim2.fromOffset(0, 56),
+		Size = UDim2.new(0, 72, 1, -56),
 		BackgroundTransparency = 1,
 		ZIndex = 6,
 	})
@@ -464,8 +624,8 @@ function ZakaUI.CreateWindow(a, b)
 
 	create("Frame", {
 		Parent = main,
-		Position = UDim2.new(0, 70, 0, 54),
-		Size = UDim2.new(0, 1, 1, -54),
+		Position = UDim2.new(0, 72, 0, 56),
+		Size = UDim2.new(0, 1, 1, -56),
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 		BackgroundTransparency = 0.9,
 		BorderSizePixel = 0,
@@ -474,8 +634,8 @@ function ZakaUI.CreateWindow(a, b)
 
 	local content = create("Frame", {
 		Parent = main,
-		Position = UDim2.fromOffset(71, 54),
-		Size = UDim2.new(1, -71, 1, -54),
+		Position = UDim2.fromOffset(73, 56),
+		Size = UDim2.new(1, -73, 1, -56),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ZIndex = 6,
@@ -483,7 +643,12 @@ function ZakaUI.CreateWindow(a, b)
 	padding(content, 10, 10, 4, 8)
 	win.Content = content
 
-	local function openPopup(anchor, width, height)
+	table.insert(connections, dragify(toggleBtn, toggleBtn, function()
+		win:Toggle()
+	end))
+
+	local function openPopup(anchor, width, height, popupCfg)
+		popupCfg = popupCfg or {}
 		local overlay = create("TextButton", {
 			Parent = main,
 			Size = UDim2.fromScale(1, 1),
@@ -492,27 +657,67 @@ function ZakaUI.CreateWindow(a, b)
 			Text = "",
 			ZIndex = 60,
 		})
+		local headerH = 30
+		local totalH = height + headerH
 		local abs = anchor.AbsolutePosition - main.AbsolutePosition
 		local px = abs.X + anchor.AbsoluteSize.X - width
 		px = math.clamp(px, 8, math.max(8, main.AbsoluteSize.X - width - 8))
 		local py = abs.Y + anchor.AbsoluteSize.Y + 6
-		if py + height > main.AbsoluteSize.Y - 8 then
-			py = math.max(8, abs.Y - height - 6)
+		if py + totalH > main.AbsoluteSize.Y - 8 then
+			py = math.max(8, abs.Y - totalH - 6)
 		end
 		local pop = create("Frame", {
 			Parent = main,
 			Position = UDim2.fromOffset(px, py),
-			Size = UDim2.fromOffset(width, height),
-			BackgroundColor3 = Color3.fromRGB(20, 20, 27),
-			BackgroundTransparency = 0.03,
+			Size = UDim2.fromOffset(width, totalH),
+			BackgroundColor3 = Color3.fromRGB(17, 17, 24),
+			BackgroundTransparency = 0.02,
 			BorderSizePixel = 0,
 			ClipsDescendants = true,
 			ZIndex = 61,
 		})
-		corner(pop, 10)
-		stroke(pop, Color3.fromRGB(255, 255, 255), 0.85, 1)
-		local popScale = create("UIScale", { Scale = 0.92, Parent = pop })
-		tween(popScale, { Scale = 1 }, 0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		corner(pop, 12)
+		stroke(pop, Color3.fromRGB(255, 255, 255), 0.84, 1)
+		local popScale = create("UIScale", { Scale = 0.88, Parent = pop })
+		tween(popScale, { Scale = 1 }, 0.24, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+		local header = create("Frame", { Parent = pop, Size = UDim2.new(1, 0, 0, headerH), BackgroundTransparency = 1, ZIndex = 62 })
+		create("TextLabel", {
+			Parent = header,
+			Position = UDim2.fromOffset(12, 0),
+			Size = UDim2.new(1, -50, 1, 0),
+			BackgroundTransparency = 1,
+			Text = tostring(popupCfg.Title or ""),
+			Font = theme.FontBold,
+			TextSize = 11,
+			TextColor3 = Color3.fromRGB(255, 255, 255),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			ZIndex = 63,
+		})
+		local xBtn = drawX(header, 22, theme.Sub, 63, Vector2.new(1, 0.5), UDim2.new(1, -15, 0.5, 0))
+		local xStroke = stroke(xBtn, Color3.fromRGB(255, 255, 255), 1, 1)
+		hoverable(xBtn, 1, 0.9, xStroke)
+
+		create("Frame", {
+			Parent = pop,
+			Position = UDim2.fromOffset(10, headerH - 1),
+			Size = UDim2.new(1, -20, 0, 1),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BackgroundTransparency = 0.9,
+			BorderSizePixel = 0,
+			ZIndex = 62,
+		})
+
+		local body = create("Frame", {
+			Parent = pop,
+			Position = UDim2.fromOffset(0, headerH),
+			Size = UDim2.new(1, 0, 1, -headerH),
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			ClipsDescendants = true,
+			ZIndex = 61,
+		})
 
 		local closed = false
 		local function close()
@@ -520,11 +725,16 @@ function ZakaUI.CreateWindow(a, b)
 				return
 			end
 			closed = true
-			pop:Destroy()
-			overlay:Destroy()
+			xBtn.Active = false
+			tween(popScale, { Scale = 0.94 }, 0.16, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+			tween(pop, { BackgroundTransparency = 1 }, 0.16)
+			task.delay(0.17, function()
+				pop:Destroy()
+				overlay:Destroy()
+			end)
 		end
-		overlay.MouseButton1Click:Connect(close)
-		return pop, overlay, close
+		xBtn.Activated:Connect(close)
+		return body, overlay, close
 	end
 
 	win.OpenPopup = openPopup
@@ -535,7 +745,6 @@ function ZakaUI.CreateWindow(a, b)
 			Window = win,
 			Theme = theme,
 			Name = tabCfg.Name or ("Tab " .. (#win.Tabs + 1)),
-			IconSource = tabCfg.Icon,
 			Order = 0,
 			Elements = {},
 			Index = #win.Tabs + 1,
@@ -543,7 +752,7 @@ function ZakaUI.CreateWindow(a, b)
 
 		local btn = create("TextButton", {
 			Parent = sidebar,
-			Size = UDim2.fromOffset(52, 50),
+			Size = UDim2.fromOffset(54, 52),
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 1,
 			AutoButtonColor = false,
@@ -552,7 +761,7 @@ function ZakaUI.CreateWindow(a, b)
 			LayoutOrder = tab.Index,
 			ZIndex = 7,
 		})
-		corner(btn, 12)
+		corner(btn, 13)
 
 		local indicator = create("Frame", {
 			Parent = btn,
@@ -568,41 +777,18 @@ function ZakaUI.CreateWindow(a, b)
 
 		local holder = create("Frame", {
 			Parent = btn,
-			Position = UDim2.fromOffset(0, 8),
-			Size = UDim2.new(1, 0, 0, 20),
+			Position = UDim2.fromOffset(0, 7),
+			Size = UDim2.new(1, 0, 0, 21),
 			BackgroundTransparency = 1,
 			ZIndex = 8,
 		})
 
-		local iconObj
-		local iconText = tabCfg.Icon or string.sub(tab.Name, 1, 1)
-		if string.find(tostring(iconText), "rbxasset") then
-			iconObj = create("ImageLabel", {
-				Parent = holder,
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				Position = UDim2.fromScale(0.5, 0.5),
-				Size = UDim2.fromOffset(20, 20),
-				BackgroundTransparency = 1,
-				Image = iconText,
-				ImageColor3 = theme.Sub,
-				ZIndex = 9,
-			})
-		else
-			iconObj = create("TextLabel", {
-				Parent = holder,
-				Size = UDim2.fromScale(1, 1),
-				BackgroundTransparency = 1,
-				Text = iconText,
-				Font = theme.FontBold,
-				TextSize = 16,
-				TextColor3 = theme.Sub,
-				ZIndex = 9,
-			})
-		end
+		local iconObj = makeIcon(holder, tabCfg.Icon or string.sub(tab.Name, 1, 1), 17, theme.Sub, 9)
+		local iconScale = create("UIScale", { Scale = 1, Parent = iconObj })
 
 		local nameLabel = create("TextLabel", {
 			Parent = btn,
-			Position = UDim2.fromOffset(0, 31),
+			Position = UDim2.fromOffset(0, 32),
 			Size = UDim2.new(1, -6, 0, 11),
 			BackgroundTransparency = 1,
 			Text = tab.Name,
@@ -639,6 +825,7 @@ function ZakaUI.CreateWindow(a, b)
 		tab.Button = btn
 		tab.Indicator = indicator
 		tab.Icon = iconObj
+		tab.IconScale = iconScale
 		tab.NameLabel = nameLabel
 
 		btn.MouseEnter:Connect(function()
@@ -651,9 +838,9 @@ function ZakaUI.CreateWindow(a, b)
 				tween(btn, { BackgroundTransparency = 1 }, 0.2)
 			end
 		end)
-		btn.MouseButton1Click:Connect(function()
+		btn.Activated:Connect(function()
 			win:SelectTab(tab)
-			ripple(btn, 26, 25)
+			ripple(btn, 27, 26)
 		end)
 
 		table.insert(win.Tabs, tab)
@@ -674,13 +861,13 @@ function ZakaUI.CreateWindow(a, b)
 			local active = t == tab
 			t.Page.Visible = active
 			tween(t.Button, { BackgroundTransparency = active and 0.9 or 1 }, 0.2)
-			tween(t.Indicator, { Size = active and UDim2.new(0, 3, 0, 22) or UDim2.new(0, 3, 0, 0) }, 0.26, Enum.EasingStyle.Back)
-			if t.Icon:IsA("ImageLabel") then
-				tween(t.Icon, { ImageColor3 = active and Color3.fromRGB(255, 255, 255) or theme.Sub }, 0.2)
-			else
-				tween(t.Icon, { TextColor3 = active and Color3.fromRGB(255, 255, 255) or theme.Sub }, 0.2)
-			end
+			tween(t.Indicator, { Size = active and UDim2.new(0, 3, 0, 24) or UDim2.new(0, 3, 0, 0) }, 0.28, Enum.EasingStyle.Back)
+			tintIcon(t.Icon, active and Color3.fromRGB(255, 255, 255) or theme.Sub)
 			tween(t.NameLabel, { TextColor3 = active and Color3.fromRGB(255, 255, 255) or theme.Sub }, 0.2)
+		end
+		if tab.IconScale then
+			tab.IconScale.Scale = 0.7
+			tween(tab.IconScale, { Scale = 1 }, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 		end
 		tab.Page.CanvasPosition = Vector2.new()
 		local i = 0
@@ -692,18 +879,7 @@ function ZakaUI.CreateWindow(a, b)
 		end
 	end
 
-	function win:Open()
-		if win.IsOpen then
-			return
-		end
-		win.IsOpen = true
-		main.Visible = true
-		mainScale.Scale = 0.9
-		tween(mainScale, { Scale = 1 }, 0.36, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-		tween(toggleLogo, { Rotation = 135 }, 0.42, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-		if blur then
-			blur.Enabled = true
-		end
+	local function staggerCurrent()
 		if win.Current then
 			local i = 0
 			for _, child in ipairs(win.Current.Page:GetChildren()) do
@@ -715,15 +891,37 @@ function ZakaUI.CreateWindow(a, b)
 		end
 	end
 
+	function win:Open()
+		if win.IsOpen then
+			return
+		end
+		win.IsOpen = true
+		main.Visible = true
+		mainScale.Scale = 0.9
+		tween(mainScale, { Scale = 1 }, 0.38, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		tween(toggleIcon, { Rotation = 180 }, 0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		if blur then
+			blur.Enabled = true
+			blur.Size = 0
+			tween(blur, { Size = blurTarget }, 0.35)
+		end
+		staggerCurrent()
+	end
+
 	function win:Close()
 		if not win.IsOpen then
 			return
 		end
 		win.IsOpen = false
 		tween(mainScale, { Scale = 0.9 }, 0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-		tween(toggleLogo, { Rotation = 0 }, 0.32, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+		tween(toggleIcon, { Rotation = 0 }, 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		if blur then
-			blur.Enabled = false
+			tween(blur, { Size = 0 }, 0.2)
+			task.delay(0.21, function()
+				if not win.IsOpen and blur then
+					blur.Enabled = false
+				end
+			end)
 		end
 		task.delay(0.19, function()
 			if not win.IsOpen then
@@ -756,10 +954,10 @@ function ZakaUI.CreateWindow(a, b)
 				Parent = gui,
 				AnchorPoint = Vector2.new(1, 0),
 				Position = UDim2.new(1, -18, 0, 18),
-				Size = UDim2.fromOffset(258, 0),
+				Size = UDim2.fromOffset(268, 0),
 				AutomaticSize = Enum.AutomaticSize.Y,
 				BackgroundTransparency = 1,
-				ZIndex = 200,
+				ZIndex = 300,
 			})
 			create("UIListLayout", {
 				Padding = UDim.new(0, 8),
@@ -773,45 +971,56 @@ function ZakaUI.CreateWindow(a, b)
 
 		local toast = create("Frame", {
 			Parent = holder,
-			Size = UDim2.fromOffset(258, 0),
+			Size = UDim2.fromOffset(268, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
-			BackgroundColor3 = Color3.fromRGB(18, 18, 25),
-			BackgroundTransparency = 0.04,
+			BackgroundColor3 = Color3.fromRGB(15, 15, 22),
+			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
 			ClipsDescendants = true,
 			LayoutOrder = win.NotifyCount,
-			ZIndex = 201,
+			ZIndex = 301,
 		})
-		corner(toast, 10)
-		stroke(toast, Color3.fromRGB(255, 255, 255), 0.86, 1)
-		create("UIScale", { Scale = 0.92, Parent = toast })
-		padding(toast, 12, 12, 11, 11)
+		corner(toast, 12)
+		stroke(toast, Color3.fromRGB(255, 255, 255), 0.85, 1)
 
-		create("Frame", {
+		local accentBar = create("Frame", {
 			Parent = toast,
 			Size = UDim2.new(0, 3, 1, 0),
 			BackgroundColor3 = notifyCfg.Color or theme.Accent,
+			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
-			ZIndex = 202,
+			ZIndex = 303,
 		})
+		gradient(accentBar, AccentGradient, NumberSequence.new(0), 90)
 
-		create("TextLabel", {
+		local inner = create("Frame", {
 			Parent = toast,
-			Position = UDim2.fromOffset(10, 0),
-			Size = UDim2.new(1, -10, 0, 14),
+			Size = UDim2.fromScale(1, 1),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+			Position = UDim2.fromOffset(38, 0),
+			ZIndex = 302,
+		})
+		padding(inner, 16, 12, 11, 13)
+
+		local titleRow = create("Frame", { Parent = inner, Size = UDim2.new(1, 0, 0, 16), BackgroundTransparency = 1, ZIndex = 303 })
+		create("TextLabel", {
+			Parent = titleRow,
+			Size = UDim2.new(1, -24, 1, 0),
 			BackgroundTransparency = 1,
 			Text = notifyCfg.Title or "提示",
 			Font = theme.FontBold,
 			TextSize = 12,
 			TextColor3 = Color3.fromRGB(255, 255, 255),
 			TextXAlignment = Enum.TextXAlignment.Left,
-			ZIndex = 202,
+			ZIndex = 304,
 		})
+		local nx = drawX(titleRow, 16, theme.Sub, 304, Vector2.new(1, 0.5), UDim2.new(1, -8, 0.5, 0))
 
 		create("TextLabel", {
-			Parent = toast,
-			Position = UDim2.fromOffset(10, 17),
-			Size = UDim2.new(1, -10, 0, 0),
+			Parent = inner,
+			Position = UDim2.fromOffset(0, 20),
+			Size = UDim2.new(1, 0, 0, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
 			Text = notifyCfg.Content or "",
@@ -821,38 +1030,60 @@ function ZakaUI.CreateWindow(a, b)
 			TextWrapped = true,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextYAlignment = Enum.TextYAlignment.Top,
-			ZIndex = 202,
+			ZIndex = 304,
 		})
 
+		local progressBg = create("Frame", { Parent = toast, Position = UDim2.new(0, 0, 1, -2), Size = UDim2.new(1, 0, 0, 2), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.92, BorderSizePixel = 0, ZIndex = 303 })
+		local progress = create("Frame", { Parent = progressBg, Size = UDim2.fromScale(1, 1), BackgroundColor3 = notifyCfg.Color or theme.Accent, BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 304 })
+		gradient(progress, AccentGradient, NumberSequence.new(0), 0)
+
+		local duration = notifyCfg.Duration or 4
+		local progressTween
+		local dead = false
 		local function dismiss()
-			if not toast or not toast.Parent then
+			if dead then
 				return
 			end
-			local sc = toast:FindFirstChildOfClass("UIScale")
-			if sc then
-				tween(sc, { Scale = 0.9 }, 0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+			dead = true
+			if progressTween then
+				progressTween:Cancel()
 			end
-			tween(toast, { BackgroundTransparency = 1 }, 0.18)
-			task.delay(0.2, function()
+			tween(progress, { Size = UDim2.fromScale(0, 1) }, 0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+			tween(inner, { Position = UDim2.fromOffset(38, 0) }, 0.24, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+			tween(toast, { BackgroundTransparency = 1 }, 0.24)
+			task.delay(0.25, function()
 				if toast then
 					toast:Destroy()
 				end
 			end)
 		end
 
+		nx.Activated:Connect(dismiss)
 		toast.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				dismiss()
 			end
 		end)
 
-		task.delay(notifyCfg.Duration or 4, dismiss)
+		task.delay(0.02, function()
+			if not toast.Parent then
+				return
+			end
+			tween(toast, { BackgroundTransparency = 0.03 }, 0.3)
+			tween(accentBar, { BackgroundTransparency = 0 }, 0.3)
+			tween(progress, { BackgroundTransparency = 0 }, 0.3)
+			tween(inner, { Position = UDim2.fromOffset(0, 0) }, 0.38, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+			progressTween = tween(progress, { Size = UDim2.fromScale(0, 1) }, duration, Enum.EasingStyle.Linear)
+		end)
+		task.delay(duration, dismiss)
 		return dismiss
 	end
 
 	function win:Destroy()
-		if pulseConn then
-			pulseConn:Disconnect()
+		for _, conn in ipairs(connections) do
+			pcall(function()
+				conn:Disconnect()
+			end)
 		end
 		if blur then
 			blur:Destroy()
@@ -892,14 +1123,24 @@ function Tab:AddSection(titleText)
 	self.Order = self.Order + 1
 	local row = create("Frame", {
 		Parent = self.Page,
-		Size = UDim2.new(1, -6, 0, 26),
+		Size = UDim2.new(1, -6, 0, 28),
 		BackgroundTransparency = 1,
 		LayoutOrder = self.Order,
 		ZIndex = 8,
 	})
-	local lbl = create("TextLabel", {
+	local bar = create("Frame", {
 		Parent = row,
-		Position = UDim2.fromOffset(4, 8),
+		Position = UDim2.fromOffset(4, 10),
+		Size = UDim2.fromOffset(3, 11),
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		BorderSizePixel = 0,
+		ZIndex = 9,
+	})
+	corner(bar, 3)
+	gradient(bar, AccentGradient, NumberSequence.new(0), 90)
+	create("TextLabel", {
+		Parent = row,
+		Position = UDim2.fromOffset(14, 8),
 		Size = UDim2.new(1, -8, 0, 14),
 		BackgroundTransparency = 1,
 		Text = string.upper(tostring(titleText or "SECTION")),
@@ -909,10 +1150,6 @@ function Tab:AddSection(titleText)
 		TextXAlignment = Enum.TextXAlignment.Left,
 		ZIndex = 9,
 	})
-	gradient(lbl, AccentGradient, NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.1),
-		NumberSequenceKeypoint.new(1, 0.85),
-	}), 0)
 	table.insert(self.Elements, row)
 	return row
 end
@@ -949,7 +1186,7 @@ function Tab:AddToggle(cfg)
 	local row = self.Window.Element(self, 46)
 	local state = cfg.Default == true
 
-	local lbl = create("TextLabel", {
+	create("TextLabel", {
 		Parent = row,
 		Position = UDim2.fromOffset(14, 0),
 		Size = UDim2.new(1, -80, 1, 0),
@@ -963,8 +1200,9 @@ function Tab:AddToggle(cfg)
 	})
 
 	if cfg.Description then
-		lbl.Position = UDim2.fromOffset(14, 7)
-		lbl.Size = UDim2.new(1, -80, 0, 14)
+		local titleLbl = row:FindFirstChildOfClass("TextLabel")
+		titleLbl.Position = UDim2.fromOffset(14, 7)
+		titleLbl.Size = UDim2.new(1, -80, 0, 14)
 		create("TextLabel", {
 			Parent = row,
 			Position = UDim2.fromOffset(14, 24),
@@ -979,16 +1217,41 @@ function Tab:AddToggle(cfg)
 		})
 	end
 
+	local glow = create("Frame", {
+		Parent = row,
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -7, 0.5, 0),
+		Size = UDim2.fromOffset(52, 34),
+		BackgroundColor3 = theme.Accent,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ZIndex = 7,
+	})
+	circle(glow)
+	gradient(glow, AccentGradient, NumberSequence.new(0.2), 0)
+
 	local track = create("Frame", {
 		Parent = row,
 		AnchorPoint = Vector2.new(1, 0.5),
 		Position = UDim2.new(1, -14, 0.5, 0),
 		Size = UDim2.fromOffset(38, 20),
-		BackgroundColor3 = Color3.fromRGB(56, 58, 70),
+		BackgroundColor3 = Color3.fromRGB(52, 54, 66),
 		BorderSizePixel = 0,
 		ZIndex = 9,
 	})
 	circle(track)
+	stroke(track, Color3.fromRGB(255, 255, 255), 0.86, 1)
+
+	local trackGrad = create("Frame", {
+		Parent = track,
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ZIndex = 9,
+	})
+	circle(trackGrad)
+	gradient(trackGrad, AccentGradient, NumberSequence.new(0.05), 0)
 
 	local knob = create("Frame", {
 		Parent = track,
@@ -1000,11 +1263,14 @@ function Tab:AddToggle(cfg)
 		ZIndex = 10,
 	})
 	circle(knob)
+	stroke(knob, Color3.fromRGB(230, 232, 245), 0.4, 1)
 
 	local function apply(value, silent)
 		state = value and true or false
-		tween(track, { BackgroundColor3 = state and theme.Accent or Color3.fromRGB(56, 58, 70) }, 0.2)
-		tween(knob, { Position = state and UDim2.new(1, -18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0) }, 0.24, Enum.EasingStyle.Back)
+		tween(track, { BackgroundColor3 = state and theme.Accent or Color3.fromRGB(52, 54, 66) }, 0.2)
+		tween(trackGrad, { BackgroundTransparency = state and 0.15 or 1 }, 0.2)
+		tween(glow, { BackgroundTransparency = state and 0.62 or 1 }, 0.25)
+		tween(knob, { Position = state and UDim2.new(1, -18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0) }, 0.26, Enum.EasingStyle.Back)
 		if cfg.Flag then
 			self.Window.Flags[cfg.Flag] = state
 		end
@@ -1013,7 +1279,7 @@ function Tab:AddToggle(cfg)
 		end
 	end
 
-	row.MouseButton1Click:Connect(function()
+	row.Activated:Connect(function()
 		apply(not state)
 		ripple(row, row.AbsoluteSize.X - 33, 23, theme.Accent)
 	end)
@@ -1044,7 +1310,7 @@ function Tab:AddSlider(cfg)
 	create("TextLabel", {
 		Parent = row,
 		Position = UDim2.fromOffset(14, 8),
-		Size = UDim2.new(1, -90, 0, 14),
+		Size = UDim2.new(1, -120, 0, 14),
 		BackgroundTransparency = 1,
 		Text = tostring(cfg.Title or "Slider"),
 		Font = theme.Font,
@@ -1058,12 +1324,12 @@ function Tab:AddSlider(cfg)
 		Parent = row,
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.new(1, -14, 0, 8),
-		Size = UDim2.new(0, 80, 0, 14),
+		Size = UDim2.new(0, 100, 0, 14),
 		BackgroundTransparency = 1,
 		Text = "",
 		Font = theme.FontBold,
 		TextSize = 11,
-		TextColor3 = theme.Accent2,
+		TextColor3 = theme.Text,
 		TextXAlignment = Enum.TextXAlignment.Right,
 		ZIndex = 9,
 	})
@@ -1081,7 +1347,7 @@ function Tab:AddSlider(cfg)
 		AnchorPoint = Vector2.new(0, 0.5),
 		Position = UDim2.new(0, 0, 0.5, 0),
 		Size = UDim2.new(1, 0, 0, 4),
-		BackgroundColor3 = Color3.fromRGB(58, 60, 72),
+		BackgroundColor3 = Color3.fromRGB(55, 57, 70),
 		BorderSizePixel = 0,
 		ZIndex = 9,
 	})
@@ -1096,6 +1362,18 @@ function Tab:AddSlider(cfg)
 	})
 	circle(fill)
 	gradient(fill, AccentGradient, NumberSequence.new(0.02), 0)
+
+	local halo = create("Frame", {
+		Parent = holder,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0, 0, 0.5, 0),
+		Size = UDim2.fromOffset(20, 20),
+		BackgroundColor3 = theme.Accent,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ZIndex = 10,
+	})
+	circle(halo)
 
 	local knob = create("Frame", {
 		Parent = holder,
@@ -1120,6 +1398,7 @@ function Tab:AddSlider(cfg)
 		end
 		tween(fill, { Size = UDim2.fromScale(percent, 1) }, 0.1)
 		tween(knob, { Position = UDim2.new(percent, 0, 0.5, 0) }, 0.1)
+		tween(halo, { Position = UDim2.new(percent, 0, 0.5, 0) }, 0.1)
 		valueLbl.Text = string.format("%." .. decimals .. "f", value) .. suffix
 		if cfg.Flag then
 			self.Window.Flags[cfg.Flag] = value
@@ -1139,6 +1418,7 @@ function Tab:AddSlider(cfg)
 	row.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
+			tween(halo, { BackgroundTransparency = 0.7 }, 0.15)
 			pointerToValue(input.Position.X)
 		end
 	end)
@@ -1153,6 +1433,7 @@ function Tab:AddSlider(cfg)
 	UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = false
+			tween(halo, { BackgroundTransparency = 0.85 }, 0.25)
 		end
 	end)
 
@@ -1172,6 +1453,7 @@ function Tab:AddButton(cfg)
 	cfg = cfg or {}
 	local theme = self.Theme
 	local row = self.Window.Element(self, 44)
+	local scale = row:FindFirstChildOfClass("UIScale")
 	local lbl = create("TextLabel", {
 		Parent = row,
 		Size = UDim2.fromScale(1, 1),
@@ -1182,8 +1464,22 @@ function Tab:AddButton(cfg)
 		TextColor3 = theme.Text,
 		ZIndex = 9,
 	})
-	gradient(lbl, ColorSequence.new(Color3.fromRGB(255, 255, 255)), NumberSequence.new(0.1), 0)
-	row.MouseButton1Click:Connect(function()
+	gradient(lbl, ColorSequence.new(Color3.fromRGB(255, 255, 255)), NumberSequence.new(0.05), 0)
+	row.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			if scale then
+				tween(scale, { Scale = 0.98 }, 0.1)
+			end
+		end
+	end)
+	row.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			if scale then
+				tween(scale, { Scale = 1 }, 0.18, Enum.EasingStyle.Back)
+			end
+		end
+	end)
+	row.Activated:Connect(function()
 		ripple(row, row.AbsoluteSize.X / 2, row.AbsoluteSize.Y / 2, theme.Accent)
 		if cfg.Callback then
 			task.spawn(cfg.Callback)
@@ -1198,24 +1494,27 @@ function Tab:AddParagraph(cfg)
 	local text = tostring(cfg.Content or cfg.Text or "")
 	local width = self.Window.Main.AbsoluteSize.X
 	if width <= 1 then
-		width = 596
+		width = 600
 	end
 	local bodyHeight = measureText(text, width - 170, theme.Font, 12)
 	local hasImage = cfg.Image and cfg.Image ~= ""
 	local imageHeight = cfg.ImageHeight or 120
 	local headHeight = 0
 	if cfg.Title and cfg.Title ~= "" then
-		headHeight = 18
+		headHeight = 20
 	end
 	local total = headHeight + bodyHeight + 24 + (hasImage and (imageHeight + 10) or 0)
 
 	local row = self.Window.Element(self, total)
 
 	if cfg.Title and cfg.Title ~= "" then
+		local bar = create("Frame", { Parent = row, Position = UDim2.fromOffset(14, 13), Size = UDim2.fromOffset(3, 11), BackgroundColor3 = Color3.fromRGB(255, 255, 255), BorderSizePixel = 0, ZIndex = 9 })
+		corner(bar, 3)
+		gradient(bar, AccentGradient, NumberSequence.new(0), 90)
 		create("TextLabel", {
 			Parent = row,
-			Position = UDim2.fromOffset(14, 10),
-			Size = UDim2.new(1, -28, 0, 14),
+			Position = UDim2.fromOffset(23, 10),
+			Size = UDim2.new(1, -37, 0, 15),
 			BackgroundTransparency = 1,
 			Text = tostring(cfg.Title),
 			Font = theme.FontBold,
@@ -1321,8 +1620,8 @@ function Tab:AddInput(cfg)
 	local boxStroke = stroke(box, Color3.fromRGB(255, 255, 255), 0.9, 1)
 
 	box.Focused:Connect(function()
-		tween(boxStroke, { Transparency = 0.15, Color = theme.Accent }, 0.18)
-		tween(box, { BackgroundTransparency = 0.88 }, 0.18)
+		tween(boxStroke, { Transparency = 0.1, Color = theme.Accent }, 0.18)
+		tween(box, { BackgroundTransparency = 0.87 }, 0.18)
 	end)
 	box.FocusLost:Connect(function(enterPressed)
 		tween(boxStroke, { Transparency = 0.9, Color = Color3.fromRGB(255, 255, 255) }, 0.2)
@@ -1386,8 +1685,8 @@ function Tab:AddDropdown(cfg)
 		ZIndex = 10,
 	})
 	corner(btn, 8)
-	stroke(btn, Color3.fromRGB(255, 255, 255), 0.9, 1)
-	padding(btn, 10, 22, 0, 0)
+	local btnStroke = stroke(btn, Color3.fromRGB(255, 255, 255), 0.9, 1)
+	padding(btn, 10, 24, 0, 0)
 
 	local valueLbl = create("TextLabel", {
 		Parent = btn,
@@ -1402,18 +1701,7 @@ function Tab:AddDropdown(cfg)
 		ZIndex = 11,
 	})
 
-	local chev = create("TextLabel", {
-		Parent = btn,
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -6, 0.5, 0),
-		Size = UDim2.fromOffset(14, 14),
-		BackgroundTransparency = 1,
-		Text = "▾",
-		Font = theme.FontBold,
-		TextSize = 10,
-		TextColor3 = theme.Sub,
-		ZIndex = 11,
-	})
+	local chev = drawChevron(btn, 11, theme.Sub, 11)
 
 	local function values()
 		local list = {}
@@ -1455,20 +1743,24 @@ function Tab:AddDropdown(cfg)
 	end
 
 	local closeCurrent
-	btn.MouseButton1Click:Connect(function()
+	btn.Activated:Connect(function()
 		if closeCurrent then
 			closeCurrent()
 			closeCurrent = nil
 			tween(chev, { Rotation = 0 }, 0.2)
 			return
 		end
-		local listHeight = math.min(#options * 26 + 10, 168)
-		local pop, _, closeFn = self.Window.OpenPopup(btn, 190, listHeight)
-		closeCurrent = closeFn
+		local listHeight = math.min(#options * 26 + 12, 160)
+		local body, _, closeFn = self.Window.OpenPopup(btn, 190, listHeight, { Title = cfg.Title or "选择" })
+		closeCurrent = function()
+			closeFn()
+			closeCurrent = nil
+			tween(chev, { Rotation = 0 }, 0.2)
+		end
 		tween(chev, { Rotation = 180 }, 0.2)
 
 		local scroll = create("ScrollingFrame", {
-			Parent = pop,
+			Parent = body,
 			Size = UDim2.fromScale(1, 1),
 			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
@@ -1480,12 +1772,12 @@ function Tab:AddDropdown(cfg)
 			ZIndex = 62,
 		})
 		create("UIListLayout", { Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder, Parent = scroll })
-		padding(scroll, 5, 5, 5, 5)
+		padding(scroll, 6, 6, 6, 6)
 
 		for index, option in ipairs(options) do
 			local optBtn = create("TextButton", {
 				Parent = scroll,
-				Size = UDim2.new(1, 0, 0, 24),
+				Size = UDim2.new(1, 0, 0, 25),
 				BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 				BackgroundTransparency = 1,
 				BorderSizePixel = 0,
@@ -1494,12 +1786,12 @@ function Tab:AddDropdown(cfg)
 				LayoutOrder = index,
 				ZIndex = 63,
 			})
-			corner(optBtn, 6)
+			corner(optBtn, 7)
 
 			local optLbl = create("TextLabel", {
 				Parent = optBtn,
-				Position = UDim2.fromOffset(8, 0),
-				Size = UDim2.new(1, -12, 1, 0),
+				Position = UDim2.fromOffset(9, 0),
+				Size = UDim2.new(1, -14, 1, 0),
 				BackgroundTransparency = 1,
 				Text = tostring(option),
 				Font = theme.Font,
@@ -1512,8 +1804,9 @@ function Tab:AddDropdown(cfg)
 
 			local active = multi and selected[tostring(option)] or (not multi and single == option)
 			if active then
-				optBtn.BackgroundTransparency = 0.86
-				optLbl.TextColor3 = theme.Accent2
+				optBtn.BackgroundTransparency = 0.85
+				optLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+				optLbl.Font = theme.FontBold
 			end
 
 			optBtn.MouseEnter:Connect(function()
@@ -1521,10 +1814,10 @@ function Tab:AddDropdown(cfg)
 			end)
 			optBtn.MouseLeave:Connect(function()
 				local nowActive = multi and selected[tostring(option)] or (not multi and single == option)
-				tween(optBtn, { BackgroundTransparency = nowActive and 0.86 or 1 }, 0.16)
+				tween(optBtn, { BackgroundTransparency = nowActive and 0.85 or 1 }, 0.16)
 			end)
 
-			optBtn.MouseButton1Click:Connect(function()
+			optBtn.Activated:Connect(function()
 				if multi then
 					if selected[tostring(option)] then
 						selected[tostring(option)] = nil
@@ -1532,8 +1825,9 @@ function Tab:AddDropdown(cfg)
 						selected[tostring(option)] = true
 					end
 					local nowActive = selected[tostring(option)] == true
-					tween(optBtn, { BackgroundTransparency = nowActive and 0.86 or 1 }, 0.15)
-					optLbl.TextColor3 = nowActive and theme.Accent2 or theme.Text
+					tween(optBtn, { BackgroundTransparency = nowActive and 0.85 or 1 }, 0.15)
+					optLbl.TextColor3 = nowActive and Color3.fromRGB(255, 255, 255) or theme.Text
+					optLbl.Font = nowActive and theme.FontBold or theme.Font
 					refreshText()
 					fire()
 				else
@@ -1542,8 +1836,6 @@ function Tab:AddDropdown(cfg)
 					fire()
 					if closeCurrent then
 						closeCurrent()
-						closeCurrent = nil
-						tween(chev, { Rotation = 0 }, 0.2)
 					end
 				end
 			end)
@@ -1603,7 +1895,7 @@ function Tab:AddColorpicker(cfg)
 		ZIndex = 10,
 	})
 	corner(swatch, 7)
-	stroke(swatch, Color3.fromRGB(255, 255, 255), 0.7, 1)
+	stroke(swatch, Color3.fromRGB(255, 255, 255), 0.65, 1)
 
 	local function fire()
 		if cfg.Flag then
@@ -1615,19 +1907,21 @@ function Tab:AddColorpicker(cfg)
 	end
 
 	local closeCurrent
-	swatch.MouseButton1Click:Connect(function()
+	swatch.Activated:Connect(function()
 		if closeCurrent then
 			closeCurrent()
-			closeCurrent = nil
 			return
 		end
-		local pop, _, closeFn = self.Window.OpenPopup(swatch, 224, 214)
-		closeCurrent = closeFn
+		local body, _, closeFn = self.Window.OpenPopup(swatch, 224, 172, { Title = cfg.Title or "颜色" })
+		closeCurrent = function()
+			closeCurrent = nil
+			closeFn()
+		end
 
 		local sv = create("Frame", {
-			Parent = pop,
-			Position = UDim2.fromOffset(10, 10),
-			Size = UDim2.fromOffset(204, 108),
+			Parent = body,
+			Position = UDim2.fromOffset(10, 8),
+			Size = UDim2.fromOffset(204, 100),
 			BackgroundColor3 = Color3.fromHSV(hue, 1, 1),
 			BorderSizePixel = 0,
 			ClipsDescendants = true,
@@ -1672,15 +1966,15 @@ function Tab:AddColorpicker(cfg)
 		stroke(svCursor, Color3.fromRGB(255, 255, 255), 0.05, 2)
 
 		local hueBar = create("Frame", {
-			Parent = pop,
-			Position = UDim2.fromOffset(10, 128),
-			Size = UDim2.fromOffset(204, 14),
+			Parent = body,
+			Position = UDim2.fromOffset(10, 116),
+			Size = UDim2.fromOffset(204, 12),
 			BackgroundColor3 = Color3.fromRGB(255, 0, 0),
 			BorderSizePixel = 0,
 			ClipsDescendants = true,
 			ZIndex = 62,
 		})
-		corner(hueBar, 7)
+		corner(hueBar, 6)
 		gradient(hueBar, ColorSequence.new({
 			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
 			ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
@@ -1695,7 +1989,7 @@ function Tab:AddColorpicker(cfg)
 			Parent = hueBar,
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			Position = UDim2.new(hue, 0, 0.5, 0),
-			Size = UDim2.fromOffset(10, 18),
+			Size = UDim2.fromOffset(10, 16),
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BorderSizePixel = 0,
 			ZIndex = 65,
@@ -1703,20 +1997,20 @@ function Tab:AddColorpicker(cfg)
 		corner(hueCursor, 4)
 
 		local preview = create("Frame", {
-			Parent = pop,
-			Position = UDim2.fromOffset(10, 152),
-			Size = UDim2.fromOffset(46, 24),
+			Parent = body,
+			Position = UDim2.fromOffset(10, 138),
+			Size = UDim2.fromOffset(46, 26),
 			BackgroundColor3 = color,
 			BorderSizePixel = 0,
 			ZIndex = 62,
 		})
 		corner(preview, 7)
-		stroke(preview, Color3.fromRGB(255, 255, 255), 0.7, 1)
+		stroke(preview, Color3.fromRGB(255, 255, 255), 0.65, 1)
 
 		local hexBox = create("TextBox", {
-			Parent = pop,
-			Position = UDim2.fromOffset(64, 152),
-			Size = UDim2.fromOffset(150, 24),
+			Parent = body,
+			Position = UDim2.fromOffset(64, 138),
+			Size = UDim2.fromOffset(150, 26),
 			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 			BackgroundTransparency = 0.92,
 			BorderSizePixel = 0,
@@ -1729,6 +2023,13 @@ function Tab:AddColorpicker(cfg)
 		})
 		corner(hexBox, 7)
 		padding(hexBox, 8, 8, 0, 0)
+		local hexStroke = stroke(hexBox, Color3.fromRGB(255, 255, 255), 0.9, 1)
+		hexBox.Focused:Connect(function()
+			tween(hexStroke, { Transparency = 0.1, Color = theme.Accent }, 0.15)
+		end)
+		hexBox.FocusLost:Connect(function()
+			tween(hexStroke, { Transparency = 0.9, Color = Color3.fromRGB(255, 255, 255) }, 0.2)
+		end)
 
 		local function sync(silent)
 			sv.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
@@ -1920,7 +2221,7 @@ function Tab:AddTabbox(cfg)
 			ZIndex = 13,
 		})
 		buttons[option] = { Btn = btn, Label = label }
-		btn.MouseButton1Click:Connect(function()
+		btn.Activated:Connect(function()
 			selectTab(option)
 		end)
 	end
